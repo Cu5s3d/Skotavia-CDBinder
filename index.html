@@ -2,1701 +2,2069 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#0a0e0c" />
+  <link rel="manifest" href='data:application/manifest+json,{"name":"Octavia MP3 Binder","short_name":"CD Binder","start_url":".","display":"standalone","orientation":"any","background_color":"#07090b","theme_color":"#0a0e0c"}' />
   <title>Škoda Octavia • MP3 CD Binder</title>
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Fonts: Inter + JetBrains Mono (for authentic head-unit dot-matrix feel) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
   <script>
     tailwind.config = {
       theme: {
         extend: {
-          fontFamily: {
-            sans: ['Inter', 'system-ui', 'sans-serif'],
-            mono: ['JetBrains Mono', 'monospace'],
-          },
-          colors: {
-            skoda: {
-              green: '#4ba82e',
-              glow: '#62d83e',
-              dark: '#0b0e11',
-              panel: '#13181e',
-              card: '#192028',
-              border: '#26303c',
-            }
-          }
+          fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
+          colors: { skoda: { bg: '#07090b', panel: '#0e1312', card: '#141c1a', border: '#1f2e2a', green: '#4ba82e', glow: '#68d348' } }
         }
       }
-    }
+    };
   </script>
-
   <style>
-    /* Custom Automotive Styling & 3D CD Physics */
-    :root {
-      --skoda-green: #4ba82e;
-      --skoda-glow: #68e342;
+    * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+    html, body { background-color: #07090b; color: #e2e8f0; overscroll-behavior-y: none; touch-action: manipulation; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #0e1312; }
+    ::-webkit-scrollbar-thumb { background: #263833; border-radius: 9999px; }
+
+    /* 3D CD Carousel */
+    .carousel-stage { perspective: 1100px; transform-style: preserve-3d; touch-action: pan-y; }
+    .cd-item { position: absolute; transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.45s ease; will-change: transform, opacity; user-select: none; }
+    .cd-disc {
+      border-radius: 50%; position: relative; overflow: hidden;
+      background: conic-gradient(from 40deg, #16241f 0deg, #27443a 45deg, #121a18 90deg, #325e4d 140deg, #16241f 195deg, #2c5243 250deg, #121a18 310deg, #16241f 360deg);
+      box-shadow: 0 20px 38px rgba(0, 0, 0, 0.78), inset 0 0 0 2px rgba(255, 255, 255, 0.14);
     }
-
-    body {
-      background-color: #07090b;
-      color: #e6edf3;
-      -webkit-tap-highlight-color: transparent;
-      overscroll-behavior-y: contain;
+    .cd-disc.active-glow { box-shadow: 0 22px 45px rgba(0, 0, 0, 0.85), 0 0 26px rgba(75, 168, 46, 0.32), inset 0 0 0 2px rgba(104, 211, 72, 0.45); }
+    .cd-sheen {
+      position: absolute; inset: 0; border-radius: 50%; pointer-events: none; z-index: 3;
+      background: linear-gradient(125deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.03) 36%, transparent 55%, rgba(104,211,72,0.12) 100%);
     }
-
-    /* Subtle brushed dark-metal texture for the app shell */
-    .dash-surface {
-      background:
-        radial-gradient(circle at 50% 0%, rgba(75, 168, 46, 0.11) 0%, transparent 55%),
-        linear-gradient(180deg, #10151b 0%, #0b0e11 100%);
+    .cd-hub {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 31%; height: 31%; border-radius: 50%; z-index: 4; pointer-events: none;
+      background: radial-gradient(circle, #07090b 35%, rgba(220,235,230,0.22) 37%, rgba(18,26,24,0.85) 68%, rgba(255,255,255,0.25) 70%, transparent 74%);
+      box-shadow: inset 0 0 8px rgba(0,0,0,0.85);
     }
-
-    /* Retro Škoda Swing Green Dot-Matrix LCD Bar */
-    .swing-lcd {
-      background: linear-gradient(180deg, #122114 0%, #0c170e 100%);
-      border: 1px solid rgba(75, 168, 46, 0.45);
-      box-shadow:
-        inset 0 2px 8px rgba(0, 0, 0, 0.85),
-        0 0 18px rgba(75, 168, 46, 0.12);
-      position: relative;
-      overflow: hidden;
+    .cd-art { position: absolute; inset: 0; border-radius: 50%; background-size: cover; background-position: center; z-index: 1; }
+    .retail-fallback {
+      background: radial-gradient(circle at 35% 35%, #5b5239 0%, #3a3423 55%, #1e1b13 100%);
     }
-
-    .swing-lcd::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background-image: radial-gradient(rgba(104, 227, 66, 0.08) 1px, transparent 0);
-      background-size: 3px 3px;
-      pointer-events: none;
+    .burned-label-pill {
+      background: rgba(7, 9, 11, 0.62);
+      backdrop-filter: blur(2px);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95);
     }
+    .yt-link, .playlist-link { touch-action: manipulation; cursor: pointer; }
 
-    /* 3D Coverflow Stage */
-    .carousel-stage {
-      perspective: 1000px;
-      touch-action: pan-y;
-      user-select: none;
-    }
-
-    .disc-slot {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 204px;
-      height: 204px;
-      margin-left: -102px;
-      margin-top: -102px;
-      transition: transform 0.48s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease, filter 0.4s ease;
-      will-change: transform, opacity;
-      cursor: pointer;
-    }
-
-    /* Realistic Optical CD-R Appearance */
-    .optical-disc {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      position: relative;
-      box-shadow:
-        0 18px 35px -8px rgba(0, 0, 0, 0.85),
-        0 0 0 1px rgba(255, 255, 255, 0.16),
-        inset 0 0 14px rgba(255, 255, 255, 0.25);
-      background:
-        radial-gradient(circle at 50% 50%, transparent 18%, rgba(255,255,255,0.06) 19%, rgba(255,255,255,0.06) 24%, transparent 25%),
-        conic-gradient(
-          from 35deg,
-          #2a333d 0deg,
-          #4b5c6e 35deg,
-          #3b7a57 70deg,
-          #73899e 110deg,
-          #2d3844 150deg,
-          #4ba82e 190deg,
-          #6f8499 235deg,
-          #2b3540 280deg,
-          #5386a6 320deg,
-          #2a333d 360deg
-        );
-      overflow: hidden;
-    }
-
-    /* Uniform Burned CD Printed Label Overlay */
-    .disc-label-art {
-      position: absolute;
-      inset: 5px;
-      border-radius: 50%;
-      opacity: 0.96;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: space-between;
-      padding: 18px 22px;
-      text-align: center;
-      pointer-events: none;
-      background: radial-gradient(circle, rgba(16,24,20,0.94) 30%, rgba(44,78,56,0.72) 78%, rgba(75,168,46,0.48) 100%);
-      border: 1px solid rgba(104, 227, 66, 0.35);
-    }
-
-    /* Custom Retail Graphic Full-Disc Artwork Layer (Pure HTML/CSS) */
-    .disc-custom-photo {
-      position: absolute;
-      inset: 3px;
-      border-radius: 50%;
-      overflow: hidden;
-      background:
-        radial-gradient(circle at 48% 38%, #ebe8dc 0%, #c6c1b0 35%, #8b836b 68%, #4d4430 100%);
-      border: 1.5px solid rgba(255, 255, 255, 0.4);
-      pointer-events: none;
-    }
-
-    .disc-custom-photo img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      border-radius: 50%;
-      display: block;
-    }
-
-    /* Custom Retail Graphic Full-Disc Artwork Layer */
-    .disc-custom-photo {
-      position: absolute;
-      inset: 3px;
-      border-radius: 50%;
-      overflow: hidden;
-      background-color: #261f16;
-      background-image: radial-gradient(circle at 50% 42%, #473927 0%, #261f16 65%, #15110c 100%);
-      background-size: cover;
-      background-position: center;
-      border: 1.5px solid rgba(255, 255, 255, 0.38);
-      pointer-events: none;
-    }
-
-    /* Holographic light reflection sweep */
-    .disc-sheen {
-      position: absolute;
-      inset: 0;
-      border-radius: 50%;
-      background: linear-gradient(
-        125deg,
-        rgba(255, 255, 255, 0.24) 0%,
-        rgba(255, 255, 255, 0.03) 38%,
-        transparent 52%,
-        rgba(104, 227, 66, 0.12) 78%,
-        rgba(255, 255, 255, 0.20) 100%
-      );
-      pointer-events: none;
-    }
-
-    /* Clear Polycarbonate Inner Clamping Ring + Spindle Hole */
-    .disc-hub {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 56px;
-      height: 56px;
-      transform: translate(-50%, -50%);
-      border-radius: 50%;
-      background: rgba(18, 23, 29, 0.52);
-      backdrop-filter: blur(1.5px);
-      border: 2px solid rgba(255, 255, 255, 0.38);
-      box-shadow:
-        inset 0 0 8px rgba(0, 0, 0, 0.75),
-        0 0 0 3px rgba(255, 255, 255, 0.14);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      pointer-events: none;
-    }
-
-    .disc-spindle {
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      background: #0b0e11;
-      border: 1.5px solid rgba(255, 255, 255, 0.3);
-      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.9);
-    }
-
-    /* Gentle spin animation for the currently centered disc */
-    @keyframes slowSpin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-
-    .is-centered .disc-spin-layer {
-      animation: slowSpin 30s linear infinite;
-    }
-
-    /* Custom subtle scrollbar */
-    ::-webkit-scrollbar {
-      width: 5px;
-      height: 5px;
-    }
-    ::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #26303c;
-      border-radius: 999px;
-    }
-
-    /* Ensure instant tap response on mobile without double-tap zoom delay */
-    .yt-link,
-    .playlist-link {
-      touch-action: manipulation;
-    }
-
-    /* ============================================================================
-       LANDSCAPE DASHBOARD MOUNT MODE (Sideways Phone Over Škoda Swing)
-       - Hides the Škoda Swing LCD bar
-       - Left (~55%): Long scrollable tracklist + pinned search bar
-       - Right (~45%): 3D CD Carousel + quick selector pills
-       ============================================================================ */
-    @media (orientation: landscape) and (max-height: 560px) {
-      body {
-        overflow: hidden;
-      }
-
-      #appShell {
-        max-width: 100vw;
-        height: 100vh;
-        min-height: 100vh;
-        flex-direction: row;
-        border-left: none;
-        border-right: none;
-      }
-
-      #swingLcdBar {
-        display: none !important;
-      }
-
-      /* Left Column (~55% width): Compact Header + Search + Long Tracklist */
-      #leftColumn {
-        width: 55%;
-        height: 100vh;
-        display: flex;
-        flex-direction: column;
-        border-right: 1px solid rgba(38, 48, 60, 0.85);
-        overflow: hidden;
-      }
-
-      #topHeader {
-        padding: 0.55rem 0.85rem;
-        position: static;
-      }
-
-      #headerBrandRow {
-        margin-bottom: 0.45rem;
-      }
-
-      #searchInput {
-        padding-top: 0.38rem;
-        padding-bottom: 0.38rem;
-      }
-
-      #tracklistSection {
-        flex: 1;
-        overflow-y: auto;
-        padding: 0.65rem 0.85rem 1.5rem 0.85rem;
-      }
-
-      /* Right Column (~45% width): Dedicated 3D Carousel Stage */
-      #carouselSection {
-        width: 45%;
-        height: 100vh;
-        border-bottom: none;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        padding: 0.65rem 0.5rem;
-        background: radial-gradient(circle at 50% 50%, rgba(75, 168, 46, 0.09) 0%, transparent 72%);
-      }
-
-      #carouselStage {
-        flex: 1;
-        height: auto;
-        margin: 0;
-      }
-
-      .disc-slot {
-        width: 180px;
-        height: 180px;
-        margin-left: -90px;
-        margin-top: -90px;
-      }
+    /* Automatic Split-Screen Landscape Mode for Car Dash Mount */
+    @media (orientation: landscape) and (max-height: 540px) {
+      body { height: 100dvh; overflow: hidden; }
+      #appShell { height: 100dvh; max-width: 100%; display: flex; flex-direction: column; overflow: hidden; }
+      #landscapeWorkspace { flex: 1; min-height: 0; display: grid; grid-template-columns: 56% 44%; overflow: hidden; }
+      #tracklistColumn { order: 1; height: 100%; display: flex; flex-direction: column; border-right: 1px solid #1f2e2a; overflow: hidden; }
+      #tracklistScrollArea { flex: 1; overflow-y: auto; padding-bottom: 1rem; }
+      #carouselColumn { order: 2; height: 100%; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; border-bottom: none; }
+      #carouselStage { height: 175px !important; }
     }
   </style>
 </head>
-<body class="min-h-screen flex justify-center selection:bg-skoda-green selection:text-white">
+<body class="min-h-screen antialiased selection:bg-skoda-green selection:text-white">
+  <div id="appShell" class="max-w-3xl mx-auto min-h-screen flex flex-col">
 
-  <!-- App Shell: Portrait Column on Upright Phone / Split-Screen Dashboard View When Tilted Sideways -->
-  <div id="appShell" class="w-full max-w-[480px] min-h-screen dash-surface border-x border-skoda-border/60 flex flex-col relative shadow-2xl">
-
-    <!-- LEFT COLUMN (In Landscape) / TOP + BOTTOM FLOW (In Portrait) -->
-    <div id="leftColumn" class="flex-1 flex flex-col min-w-0">
-
-      <!-- Top Header & Search Bar -->
-      <header id="topHeader" class="px-4 pt-4 pb-3 border-b border-skoda-border/70 bg-skoda-dark/85 backdrop-blur-md sticky top-0 z-30">
-        <div id="headerBrandRow" class="flex items-center justify-between mb-2.5">
-          <div class="flex items-center gap-2.5 min-w-0">
-            <div class="w-8 h-8 rounded-lg bg-skoda-card border border-skoda-green/40 flex items-center justify-center shadow-inner shrink-0">
-              <svg class="w-4 h-4 text-skoda-glow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="9" />
-                <circle cx="12" cy="12" r="2.5" />
-                <path d="M12 3v3M12 18v3" />
-              </svg>
-            </div>
-            <div class="min-w-0">
-              <h1 class="text-sm font-bold tracking-wide text-white uppercase truncate">Octavia MP3 Binder</h1>
-              <p class="text-[11px] text-slate-400 font-mono truncate">ŠKODA SWING • 6-DISC BINDER</p>
-            </div>
+    <!-- Header -->
+    <header class="sticky top-0 z-30 bg-skoda-panel/95 backdrop-blur-md border-b border-skoda-border px-3 py-2">
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2 min-w-0">
+          <div class="w-7 h-7 rounded-lg bg-skoda-green/20 border border-skoda-green/50 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-skoda-glow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/>
+            </svg>
           </div>
+          <div class="min-w-0">
+            <h1 class="text-xs sm:text-sm font-bold tracking-wide text-white uppercase truncate">Octavia MP3 Binder</h1>
+            <p class="text-[10px] text-slate-400 font-mono truncate">ŠKODA SWING • 16-DISC COLLECTION</p>
+          </div>
+        </div>
 
-          <button
-            id="openImportBtn"
-            class="px-2.5 py-1.5 rounded-lg bg-skoda-card hover:bg-skoda-border/80 border border-skoda-border text-[11px] font-medium text-slate-200 flex items-center gap-1.5 shrink-0 active:scale-95 transition"
-          >
+        <div class="flex items-center gap-1.5 shrink-0">
+          <button id="fullscreenBtn" type="button" title="Toggle Fullscreen" aria-label="Toggle Fullscreen"
+            class="p-1.5 rounded-lg bg-skoda-card hover:bg-skoda-border border border-skoda-border text-slate-200 flex items-center justify-center active:scale-95 transition">
+            <svg class="w-3.5 h-3.5 text-skoda-glow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+            </svg>
+          </button>
+
+          <button id="openImportBtn" type="button"
+            class="px-2.5 py-1.5 rounded-lg bg-skoda-card hover:bg-skoda-border border border-skoda-border text-[11px] font-medium text-slate-200 flex items-center gap-1.5 active:scale-95 transition">
             <svg class="w-3.5 h-3.5 text-skoda-glow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
             </svg>
             <span>Edit Lists</span>
           </button>
         </div>
+      </div>
+    </header>
 
-        <!-- Global Cross-Disc Search Bar -->
-        <div class="relative">
-          <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
-          </svg>
-          <input
-            id="searchInput"
-            type="text"
-            placeholder="Search song or folder across all discs..."
-            class="w-full bg-skoda-panel/90 border border-skoda-border focus:border-skoda-green rounded-xl pl-9 pr-8 py-2 text-xs text-white placeholder-slate-500 outline-none transition"
-          />
-          <button
-            id="clearSearchBtn"
-            class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1"
-            aria-label="Clear search"
-          >
-            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <path d="M18 6 6 18M6 6l12 12"/>
-            </svg>
+    <!-- Main Responsive Workspace -->
+    <main id="landscapeWorkspace" class="flex-1 flex flex-col">
+
+      <!-- 3D CD Carousel Section (Top in Portrait, Right in Landscape) -->
+      <section id="carouselColumn" class="bg-gradient-to-b from-skoda-panel to-skoda-bg border-b border-skoda-border px-3 py-2.5">
+        <div class="flex items-center justify-between text-[10px] font-mono text-slate-400">
+          <span>← SWIPE SLEEVES →</span>
+          <span id="sleeveCounter" class="text-skoda-glow font-semibold">SLEEVE 1 / 16</span>
+        </div>
+
+        <div id="carouselStage" class="carousel-stage relative h-52 sm:h-60 w-full flex items-center justify-center overflow-hidden my-1"></div>
+
+        <!-- Controls & Scrollable Quick-Select Pills -->
+        <div class="flex items-center gap-2">
+          <button id="prevDiscBtn" type="button" aria-label="Previous CD"
+            class="w-9 h-9 rounded-xl bg-skoda-card hover:bg-skoda-border border border-skoda-border flex items-center justify-center text-white shrink-0 active:scale-90 transition">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg>
           </button>
-        </div>
-      </header>
 
-      <!-- PORTRAIT PLACEHOLDER FOR CAROUSEL (Moved dynamically between portrait & landscape) -->
-      <div id="portraitCarouselMount"></div>
+          <div id="discTabs" class="flex-1 flex items-center gap-1 bg-skoda-panel p-1 rounded-xl border border-skoda-border/80 overflow-x-auto no-scrollbar"></div>
 
-      <!-- SCROLLABLE TRACKLIST SECTION (Left Side in Landscape / Bottom in Portrait) -->
-      <section id="tracklistSection" class="flex-1 px-4 py-3.5 pb-10">
-        <!-- Active Disc Summary Header (Hidden during global search) -->
-        <div id="activeDiscHeader" class="flex items-start justify-between gap-2.5 mb-3.5">
-          <div class="min-w-0 flex-1">
-            <div class="flex items-center flex-wrap gap-1.5">
-              <span id="activeDiscPill" class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase bg-skoda-green/20 text-skoda-glow border border-skoda-green/40">
-                DISC 01
-              </span>
-              <span id="activeDiscStats" class="text-xs font-mono text-slate-400 truncate">
-                1 Folder • 1 Track
-              </span>
-              <a
-                id="activePlaylistLink"
-                href="#"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="playlist-link hidden px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-red-500/15 hover:bg-red-500/25 text-red-300 border border-red-500/40 transition items-center gap-1"
-                title="Open master YouTube Music playlist"
-              >
-                <span>Open YT Playlist ↗</span>
-              </a>
-            </div>
-            <h2 id="activeDiscTitle" class="text-base font-bold text-white mt-1 truncate">
-              DJ Sebi — Locul tau in inima mea
-            </h2>
-            <p id="activeDiscSubtitle" class="text-xs text-slate-400 truncate">
-              SC Total Studio • Retail CD
-            </p>
-          </div>
-
-          <!-- Share / Copy Direct Disc QR Link Button -->
-          <button
-            id="copyLinkBtn"
-            class="shrink-0 px-2.5 py-2 rounded-xl bg-skoda-card hover:bg-skoda-border/70 border border-skoda-border text-xs text-slate-200 flex items-center gap-1.5 active:scale-95 transition"
-            title="Copy direct URL for this disc's QR code"
-          >
-            <svg class="w-3.5 h-3.5 text-skoda-glow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-              <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
-            </svg>
-            <span id="copyLinkText" class="text-[11px] font-medium">QR Link</span>
+          <button id="nextDiscBtn" type="button" aria-label="Next CD"
+            class="w-9 h-9 rounded-xl bg-skoda-card hover:bg-skoda-border border border-skoda-border flex items-center justify-center text-white shrink-0 active:scale-90 transition">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 18l6-6-6-6"/></svg>
           </button>
-        </div>
-
-        <!-- Search Results Banner (Shown only when searching) -->
-        <div id="searchResultsHeader" class="hidden mb-3 flex items-center justify-between">
-          <span id="searchCountText" class="text-xs font-mono text-skoda-glow">0 matches found</span>
-          <button id="resetSearchLink" class="text-xs text-slate-400 underline hover:text-white">Back to disc view</button>
-        </div>
-
-        <!-- Tracklist Container -->
-        <div id="tracklistContainer" class="space-y-3">
-          <!-- Folders and songs injected here -->
         </div>
       </section>
-    </div>
 
-    <!-- 3D COVERFLOW CAROUSEL SECTION (Right Column in Landscape / Below Header in Portrait) -->
-    <section id="carouselSection" class="pt-3 pb-2 border-b border-skoda-border/60 relative overflow-hidden">
-      <div class="flex items-center justify-between px-4 text-[11px] font-mono text-slate-400">
-        <span>← SWIPE SLEEVES →</span>
-        <span id="discCounterBadge" class="text-skoda-glow font-semibold">SLEEVE 1 / 4</span>
-      </div>
-
-      <!-- 3D Carousel Viewport -->
-      <div id="carouselStage" class="carousel-stage relative h-[228px] w-full my-1">
-        <!-- Discs injected dynamically by JS -->
-      </div>
-
-      <!-- Disc Switcher Pills + Prev/Next Tactile Buttons -->
-      <div class="px-3 pb-1.5 flex items-center justify-between gap-1.5">
-        <button
-          id="prevDiscBtn"
-          class="p-2 rounded-xl bg-skoda-card hover:bg-skoda-border/80 border border-skoda-border text-slate-200 active:scale-95 transition"
-          aria-label="Previous disc"
-        >
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-            <path d="m15 18-6-6 6-6"/>
-          </svg>
-        </button>
-
-        <!-- Direct Disc Quick-Select Tabs -->
-        <div id="discTabs" class="flex items-center gap-1 bg-skoda-panel p-1 rounded-xl border border-skoda-border/80">
-          <!-- Populated via JS -->
-        </div>
-
-        <button
-          id="nextDiscBtn"
-          class="p-2 rounded-xl bg-skoda-card hover:bg-skoda-border/80 border border-skoda-border text-slate-200 active:scale-95 transition"
-          aria-label="Next disc"
-        >
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-            <path d="m9 18 6-6-6-6"/>
-          </svg>
-        </button>
-      </div>
-    </section>
-
-    <!-- MODAL: Paste `cmd` `dir /b /s` Tracklist & Optional Custom CD Cover Photo -->
-    <div id="importModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-3">
-      <div class="w-full max-w-[460px] bg-skoda-panel border border-skoda-border rounded-2xl p-4 shadow-2xl max-h-[90vh] overflow-y-auto">
-        <div class="flex items-center justify-between mb-2">
-          <h3 class="text-sm font-bold text-white">Edit Disc Tracklist & Artwork</h3>
-          <button id="closeImportBtn" class="p-1 text-slate-400 hover:text-white">
-            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M18 6 6 18M6 6l12 12"/>
+      <!-- Tracklist & Search Section (Bottom in Portrait, Left in Landscape) -->
+      <section id="tracklistColumn" class="flex-1 flex flex-col min-h-0">
+        <!-- Search & Active Disc Header -->
+        <div class="p-3 bg-skoda-bg/95 border-b border-skoda-border space-y-2 shrink-0">
+          <div class="relative">
+            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
             </svg>
-          </button>
-        </div>
+            <input id="searchInput" type="search" placeholder="Search song or artist across all 16 discs..."
+              class="w-full bg-skoda-card border border-skoda-border focus:border-skoda-green rounded-xl pl-9 pr-8 py-2 text-xs text-white placeholder-slate-500 outline-none transition" />
+            <button id="clearSearchBtn" type="button" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs px-1">✕</button>
+          </div>
 
-        <p class="text-xs text-slate-400 mb-3 leading-relaxed">
-          Paste the raw output from <code class="text-slate-200 bg-black/40 px-1 rounded">dir "H:\*.mp3" /b /s /on</code> below, or upload a photo of a printed CD label to preview it live.
-        </p>
-
-        <div class="flex gap-2 mb-2.5">
-          <select id="importTargetDisc" class="bg-skoda-card border border-skoda-border rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-skoda-green">
-            <option value="0">Disc 01 (DJ Sebi)</option>
-            <option value="1">Disc 02 (Hell Yeah Vol. 1)</option>
-            <option value="2">Disc 03 (Hell Yeah Vol. 2)</option>
-            <option value="3">Disc 04 (Hell Yeah Vol. 3)</option>
-            <option value="4">Disc 05 (Hell Yeah Vol. 4)</option>
-            <option value="5">Disc 06 (Hell Yeah Vol. 5)</option>
-          </select>
-          <input
-            id="importDiscTitle"
-            type="text"
-            placeholder="Custom Disc Title (optional)"
-            class="flex-1 bg-skoda-card border border-skoda-border rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-skoda-green"
-          />
-        </div>
-
-        <!-- Optional Photo Uploader for Custom CD Graphic (e.g., Disc 01) -->
-        <div class="mb-2.5 p-2.5 rounded-xl bg-skoda-card/80 border border-skoda-border/80">
-          <div class="flex items-center justify-between gap-2">
+          <div id="activeDiscHeader" class="flex items-center justify-between gap-2">
             <div class="min-w-0">
-              <div class="text-[11px] font-semibold text-white">Custom Disc Photo (Optional)</div>
-              <div id="customArtFileName" class="text-[10px] text-slate-400 truncate">Test / Embed Disc Photo (auto-cropped to 500×500)...</div>
+              <div class="flex items-center gap-1.5">
+                <span id="activeDiscBadge" class="px-1.5 py-0.5 rounded bg-skoda-green/20 border border-skoda-green/40 text-skoda-glow font-mono text-[10px] font-bold">DISC 01</span>
+                <h2 id="activeDiscTitle" class="text-xs sm:text-sm font-bold text-white truncate">DJ Sebi — Locul tau in inima mea</h2>
+              </div>
+              <p id="activeDiscSubtitle" class="text-[11px] text-slate-400 mt-0.5 truncate">2 videoclipuri • Pressed CD</p>
             </div>
-            <label class="shrink-0 px-2.5 py-1.5 rounded-lg bg-skoda-panel hover:bg-skoda-border border border-skoda-border text-[11px] font-medium text-skoda-glow cursor-pointer transition">
-              <span>Choose Photo</span>
-              <input id="customArtInput" type="file" accept="image/*" class="hidden" />
-            </label>
-          </div>
-          <div id="copyDataUrlRow" class="hidden mt-2 pt-2 border-t border-skoda-border/60 flex items-center justify-between gap-2">
-            <span class="text-[10px] text-slate-400">Save permanently into index.html:</span>
-            <button id="copyDataUrlBtn" type="button" class="px-2 py-1 rounded bg-skoda-green/20 text-skoda-glow border border-skoda-green/40 text-[10px] font-mono font-bold hover:bg-skoda-green/30 transition">
-              Copy Data URL
-            </button>
+
+            <div class="flex items-center gap-1.5 shrink-0">
+              <a id="openPlaylistBtn" href="#" target="_blank" rel="noopener noreferrer"
+                class="playlist-link hidden px-2.5 py-1.5 rounded-lg bg-red-500/15 hover:bg-red-500/25 border border-red-500/40 text-[10px] font-semibold text-red-300 items-center gap-1 active:scale-95 transition">
+                <span>YT Playlist ↗</span>
+              </a>
+              <button id="copyLinkBtn" type="button"
+                class="px-2 py-1.5 rounded-lg bg-skoda-card hover:bg-skoda-border border border-skoda-border text-[10px] font-mono text-slate-300 active:scale-95 transition">
+                Share
+              </button>
+            </div>
           </div>
         </div>
 
-        <textarea
-          id="importTextarea"
-          rows="5"
-          placeholder="Paste lines like:&#10;H:\Hell Yeah\Song One.mp3&#10;H:\Hell Yeah\Song Two.mp3"
-          class="w-full bg-skoda-dark border border-skoda-border focus:border-skoda-green rounded-xl p-3 font-mono text-[11px] text-slate-200 placeholder-slate-600 outline-none resize-none"
-        ></textarea>
-
-        <div class="flex items-center justify-end gap-2 mt-3">
-          <button id="cancelImportBtn" class="px-3.5 py-2 rounded-xl text-xs text-slate-400 hover:text-white">Cancel</button>
-          <button id="applyImportBtn" class="px-4 py-2 rounded-xl bg-skoda-green hover:bg-skoda-glow text-white font-semibold text-xs shadow-lg transition">
-            Update Disc
-          </button>
+        <!-- Scrollable Tracks -->
+        <div id="tracklistScrollArea" class="flex-1 overflow-y-auto p-3 space-y-2 pb-16">
+          <div id="globalSearchResults" class="hidden space-y-2"></div>
+          <div id="discTrackContainer" class="space-y-1.5"></div>
         </div>
-      </div>
-    </div>
-
-    <!-- Toast Notification -->
-    <div id="toast" class="pointer-events-none fixed bottom-5 left-1/2 -translate-x-1/2 z-50 opacity-0 transition-opacity duration-300">
-      <div id="toastMsg" class="px-3.5 py-2 rounded-full bg-skoda-card border border-skoda-green/50 text-xs font-mono text-skoda-glow shadow-xl">
-        Copied!
-      </div>
-    </div>
-
+      </section>
+    </main>
   </div>
 
-  <!-- Safe JSON Data Store (Prevents quotes, apostrophes, or Cyrillic characters from ever breaking JS syntax) -->
+  <!-- Toast Banner -->
+  <div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 px-3.5 py-2 rounded-xl bg-skoda-card border border-skoda-green/60 text-xs text-white shadow-xl opacity-0 pointer-events-none transition-opacity duration-200"></div>
+
+  <!-- Edit Lists & Photo Cropper Modal -->
+  <div id="importModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-3">
+    <div class="bg-skoda-panel border border-skoda-border rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
+      <div class="flex items-center justify-between px-4 py-3 border-b border-skoda-border">
+        <h3 class="text-sm font-bold text-white">Edit Disc Tracklist & Disc 01 Cover</h3>
+        <button id="closeImportBtn" type="button" class="text-slate-400 hover:text-white text-sm px-2">✕</button>
+      </div>
+      <div class="p-4 space-y-3">
+        <!-- Disc Cover Photo Tester -->
+        <div class="p-3 rounded-xl bg-skoda-card border border-skoda-border space-y-2">
+          <div class="flex items-center justify-between gap-2">
+            <div class="min-w-0">
+              <p class="text-xs font-semibold text-white">CD Surface Photo Tester</p>
+              <p class="text-[10px] text-slate-400">Preview square-cropped <code class="text-slate-300">dj-sebi.jpg</code> or <code class="text-slate-300">maxell.jpg</code> (applied to Discs 02–16).</p>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <select id="photoTargetSelect" class="bg-skoda-panel border border-skoda-border rounded-lg px-2 py-1.5 text-[10px] font-mono text-white outline-none focus:border-skoda-green">
+                <option value="retail">Disc 01 (dj-sebi.jpg)</option>
+                <option value="maxell">Discs 02–16 (maxell.jpg)</option>
+              </select>
+              <label class="px-2.5 py-1.5 rounded-lg bg-skoda-green text-white text-[11px] font-semibold cursor-pointer active:scale-95 transition">
+                Choose Photo
+                <input id="photoUploadInput" type="file" accept="image/*" class="hidden" />
+              </label>
+            </div>
+          </div>
+          <div id="dataUrlRow" class="hidden flex items-center justify-between gap-2 pt-1 border-t border-skoda-border/60">
+            <span id="dataUrlStatus" class="text-[10px] font-mono text-skoda-glow truncate">500×500 JPEG Data URL ready</span>
+            <button id="copyDataUrlBtn" type="button" class="px-2 py-1 rounded bg-skoda-panel border border-skoda-border text-[10px] font-mono text-white shrink-0">Copy Data URL</button>
+          </div>
+        </div>
+
+        <!-- Tracklist Editor -->
+        <div class="flex gap-2">
+          <select id="importTargetDisc" class="bg-skoda-card border border-skoda-border rounded-xl px-2.5 py-2 text-xs text-white outline-none focus:border-skoda-green max-w-[45%]"></select>
+          <input id="importDiscTitle" type="text" placeholder="Disc title" class="flex-1 bg-skoda-card border border-skoda-border rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-skoda-green" />
+        </div>
+        <textarea id="importTextarea" rows="7" placeholder="Paste CDBurnerXP tracklist (one track per line)..."
+          class="w-full bg-skoda-card border border-skoda-border rounded-xl p-3 text-xs font-mono text-slate-200 outline-none focus:border-skoda-green"></textarea>
+        <div class="flex justify-end gap-2">
+          <button id="saveImportBtn" type="button" class="px-4 py-2 rounded-xl bg-skoda-green hover:bg-skoda-glow/90 text-white text-xs font-bold transition">Apply to Disc</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Safe JSON Data Store (All 16 Discs • 1,241 Tracks) -->
   <script type="application/json" id="disc-data">
-    [
-      {
-        "id": 1,
-        "code": "DISC 01",
-        "title": "DJ Sebi — Locul tau in inima mea",
-        "subtitle": "SC Total Studio • Retail CD",
-        "isCustomGraphic": true,
-        "artUrl": "./dj-sebi.jpg",
-        "playlistUrl": "",
-        "folders": [
-          {
-            "name": "Tracklist",
-            "tracks": [
-              "Locul tau in inima mea (Sample — Add full tracklist later)",
-              "Videoclip Bonus 01",
-              "Videoclip Bonus 02"
-            ]
-          }
-        ]
-      },
-      {
-        "id": 2,
-        "code": "DISC 02",
-        "title": "Hell Yeah — Vol. 1",
-        "subtitle": "Burned MP3 CD • 37 Tracks",
-        "isCustomGraphic": false,
-        "playlistUrl": "https://music.youtube.com/playlist?list=PLOmp4tb1eywp1Q9CIEZ9z2-ddqFGwNc68",
-        "folders": [
-          {
-            "name": "Hell Yeah",
-            "tracks": [
-              "SAMURAI 【 侍 】 ☯ Japanese Trap & Bass Type Beat ☯ Trapanese Hip Hop Mix",
-              "Dark Bass Techno / Minimal / Tech Noir mix 'KTULU'",
-              "Wanderer - Best New Electro House & Future Bass Music mixed by Ephixa 2016",
-              "Mick Gordon - The Only Thing They Fear Is You (slowed)",
-              "The Only Thing They Fear Is You (Reborn Mix) - DOOM Eternal Remix",
-              "The Only Thing They Fear Is You (Old & New Combo Remix)",
-              "White Eyes - Rites of Abaddon",
-              "Lych & White Eyes - Woe",
-              "XheckX - The Ruins Of The Exanimate",
-              "Substep Infrabass (ft. Bloodfusion) - The Unknowns of the Darkest Lights [50k Subscribers Exclusive]",
-              "VISH_AZ - Memories [Exclusive]",
-              "Groovaholik & Mandragora - Wild Wild West (Official Video)",
-              "Araphel - A Shrine For The Darkness",
-              "Elände - They Speak of the Darkness",
-              "Havel - The Dark Soul",
-              "White Eyes & SKRUSH - Judgement",
-              "KROWW - The King in Yellow",
-              "White Eyes - Omega",
-              "Havel - Nightmare",
-              "Mute - Monotheism",
-              "SKRUSH - Doomsday [Exclusive]",
-              "Black Serpens - Dies Irae",
-              "Poseidon - Ixion",
-              "Havel - Isolation",
-              "Tame Impala - New Person, Same Old Mistakes (Original Instrumental)",
-              "Code: Pandorum - Chosen (Venom Remix) [WARNING: HEAVY]",
-              "Osiriz - The Prince",
-              "Havel - Fate",
-              "Karnal - King",
-              "SUBSTEP INFRABASS - Brutbientum",
-              "Havel - Mourn",
-              "Karnal - Marduk",
-              "White Eyes & SCARRED - Terror",
-              "Havel - Sanctum",
-              "White Eyes & Desiccated Aberration - Overseer",
-              "CATACLYSM",
-              "Conjure"
-            ]
-          }
-        ]
-      },
-      {
-        "id": 3,
-        "code": "DISC 03",
-        "title": "Hell Yeah — Vol. 2",
-        "subtitle": "Burned MP3 CD • 71 Tracks",
-        "isCustomGraphic": false,
-        "playlistUrl": "https://music.youtube.com/playlist?list=PLOmp4tb1eywp1Q9CIEZ9z2-ddqFGwNc68",
-        "folders": [
-          {
-            "name": "Hell Yeah",
-            "tracks": [
-              "Evilwave - Misery",
-              "PlvgueDxctxr - DRVUGR",
-              "White Eyes - Atonement",
-              "The Ragnarok",
-              "Pyramid",
-              "Dyroth - Vanguard (Elande Remix)",
-              "Facesplit - Marv (Code: Pandorum Remix)",
-              "White Eyes & Automatik - Plagues",
-              "[Deathstep] Kroww X White Eyes - The Sacrifice",
-              "Code: Pandorum - Exit Humanity [DEATH BOOSTED]",
-              "White Eyes & Absolute Zero - Redeemer",
-              "White Eyes & Pyre - Gehenna",
-              "Code: Pandorum - Covenant",
-              "Black Tiger Sex Machine & Apashe - Replicants",
-              "[Deathstep] Dyroth - Destruction VIP",
-              "Mantis - Anubis",
-              "Code: Pandorum - Chosen (Deindividuation Remix) [Exclusive]",
-              "Descent",
-              "Excalibur - Desolation",
-              "Creepa - Sorrow (Havel & Automatik VIP)",
-              "02. Cultist Base",
-              "RipRaw & Ohmie - Sudden Collapse",
-              "Moldae - All I Want",
-              "Ritual",
-              "Code: Pandorum - Event Horizon (White Eyes Remix) [Premiere]",
-              "[Deathstep] Pancode - Revelation of John the Divine",
-              "Code: Pandorum - The Neon Demon",
-              "Dead Cowboy - Mortal Soul",
-              "SWARM - Consumed",
-              "KROWW - Memento Mori",
-              "Teminite - Beastmode",
-              "Judgement Day",
-              "White Eyes - Cathedral",
-              "Evilwave - Calm Down",
-              "KROWW - HYSTERIA",
-              "Unksra - Burn The World [Exclusive]",
-              "The Fallen Ft MagMag",
-              "Elände - Oblivion",
-              "Sennago - Hungry Ghost",
-              "SONG SIX",
-              "Evilwave & Antima - Tinnitus",
-              "Chosen",
-              "Izzamuzzic, Julien Marchal - Shootout (official audio)",
-              "Code: Pandorum - Exit Humanity",
-              "Summon The Beast - Beast",
-              "W!CKED & White Eyes - Salvation",
-              "SYN - 28 Days Later",
-              "Code: Pandorum - Remember Me",
-              "BLOODSET & Through The Angel's Eyes - Requiem",
-              "EPIC ROCK | ''Men in the Mask'' by All Good Things (Super Rock)",
-              "Frequensphere - Heaven",
-              "Havel x Biwee x Marofame - Monomania",
-              "Oh, Andron & Diskirz - Ragnarok",
-              "Eminem - Venom",
-              "Evilwave & Teminite - Mutant (ft. Prey For Me)",
-              "Mord Mora (Pancode) - Infected",
-              "The Miracle",
-              "Havel - Dusk of Humanity",
-              "SPLIT PERSONALITY",
-              "Moth - Nexion",
-              "Thestatic - Inhuman Solitude",
-              "Osiriz - Birth of a God [Exclusive]",
-              "Kai Wachi - Better Off Alone (ft. RUNN)",
-              "White Eyes & Dyroth - Belle Sanctum 🚨",
-              "KROWW - The Judge",
-              "KROWW - ❖ ⋗Ξ∫†Ꝛ∐Ꜿ†¡⟐₪ ❖",
-              "Kozmoz - Overload",
-              "The Canal",
-              "White Eyes - Seraphim",
-              "Black Tongue - Waste (Dead Cowboy Bootleg) [REVIVAL WEEK #5]",
-              "DIARY OF A MANIAC"
-            ]
-          }
-        ]
-      },
-      {
-        "id": 4,
-        "code": "DISC 04",
-        "title": "Hell Yeah — Vol. 3",
-        "subtitle": "Burned MP3 CD • 85 Tracks",
-        "isCustomGraphic": false,
-        "playlistUrl": "https://music.youtube.com/playlist?list=PLOmp4tb1eywp1Q9CIEZ9z2-ddqFGwNc68",
-        "folders": [
-          {
-            "name": "Hell Yeah",
-            "tracks": [
-              "Eminem - Till I Collapse [HD]",
-              "swarm - On the Edge",
-              "POSSESSOR",
-              "Araf - Adversity",
-              "Elände - Hymn Concerning The Void",
-              "Fury",
-              "EPIC ROCK | ''For The Glory'' by All Good Things (2017)",
-              "Havel & Neurektomie - Unhallowed",
-              "Let Us Pray",
-              "Code: Pandorum - God",
-              "KROWW - The Crucifixion [Exclusive]",
-              "CRIMSON BURNING",
-              "White Eyes - Perdition",
-              "Pancode - Suffer",
-              "Code: Pandorum - God Complex (Kretan Remix)",
-              "Code: Pandorum - Illusion",
-              "Code: Pandorum - The Lovecraftian Horrors Inspired MASTERCLASS",
-              "Mantis - Body Bag (2025 'Bodied' VIP)",
-              "Dyroth - Existence",
-              "KROWW - Oniwa",
-              "Renaissance",
-              "EPIC ROCK | ''Sleepwalk'' by The Spiritual Machines",
-              "Pancode - Balarok",
-              "Unksra - Excalibur",
-              "swarm. - Salvation",
-              "Awakening",
-              "UNKSRA - Odyssey Of Martyrs",
-              "AL7AR & Constrict - Indestructible Reptile [SCP-682 Fan Song]",
-              "DEVILIRIUM x Constrict x Dead Cowboy - More Majorum",
-              "JNATHYN - Dioma (Original Mix)",
-              "[Deathstep] Pancode - After God",
-              "White Eyes - Scourge",
-              "Code: Pandorum - Chosen (Havel Remix)",
-              "Sullivan King — Watch The Crown Fall",
-              "EPIC ROCK | ''Get Up'' by All Good Things (Extreme Music)",
-              "Diskirz - Battle Of Gods",
-              "EPIC ROCK | ''Insanity'' by Extreme Music",
-              "White Eyes - Legion [FREE DOWNLOAD]",
-              "Anthem Of The Lonely",
-              "INZO - Overthinker",
-              "Pancode - Machine Blood",
-              "[Deathstep] Infradist & White Eyes - The Fire Keeper",
-              "UNKSRA - Blue-Eyed Demon",
-              "KROWW - ANKH",
-              "Leviathan",
-              "Captain Panic! - Dead Space (Synoid Remix)",
-              "DEFECT - Parasite",
-              "SONNE (in style of DOOM)",
-              "Outcast (Instrumental)",
-              "Diskirz - Vendetta",
-              "Apothecide - minhak",
-              "Moth - Meet Your Maker",
-              "Evanescence - Bring Me To Life (Teminite & The Arcturians Remix)",
-              "Code: Pandorum - Lose Your Mind",
-              "KROWW - EVIL NEVER DIES",
-              "Mantis X BVLVNCE - Thoughts And Prayers",
-              "Syn - Synners",
-              "Dead Cowboy - Lilith",
-              "DEFECT - PAIN",
-              "KRAKEN - N3ÜRØ [DUBSTEP]",
-              "EPIC ROCK | ''What Have I Become'' by All Good Things",
-              "KROWW - War Machine",
-              "UNKSRA - Nosferatu",
-              "RipRaw & Ohmie - The Damned",
-              "Tokzick - The Devil's Sunrise",
-              "Soulless Cvlt - Shinigami",
-              "The Banshee Chapter",
-              "The DeadBorn",
-              "Karbonite - Suffer Evermore (Abhorrent VIP) [Exclusive]",
-              "thestatic - Decompression [Exclusive]",
-              "SKRUSH - The Shadow King",
-              "Calvaire",
-              "KROWW - UMBRA (Echoes From The Abyss VIP)",
-              "Sucker for Pain (with Logic, Ty Dolla $ign & X Ambassadors)",
-              "KROWW - Oh My Gore",
-              "thestatic — Decompression [Deathstep]",
-              "Code: Pandorum - Forgive Us",
-              "Forgive Us",
-              "EPIC ROCK | ''I'm Dangerous'' by The Everlove",
-              "Aero Chord - Surface [Bass Boosted]",
-              "Trippie Redd – Miss The Rage Feat. Playboi Carti (Instrumental)",
-              "Araf - Cursed",
-              "Through The Angel's Eye - Outcast [Exclusive]",
-              "Darkzterrøid & Deafwave - Satan Complex [Hydraulic x Unknown Future]",
-              "UNKSRA - Haemorrhagia"
-            ]
-          }
-        ]
-      },
-      {
-        "id": 5,
-        "code": "DISC 05",
-        "title": "Hell Yeah — Vol. 4",
-        "subtitle": "Burned MP3 CD • 102 Tracks",
-        "isCustomGraphic": false,
-        "playlistUrl": "https://music.youtube.com/playlist?list=PLOmp4tb1eywp1Q9CIEZ9z2-ddqFGwNc68",
-        "folders": [
-          {
-            "name": "Hell Yeah",
-            "tracks": [
-              "The Plot In You - FEEL NOTHING (Official Music Video)",
-              "Sacrament",
-              "Dirty Religion - Retribution",
-              "KROWW - Fear Me [Premiere]",
-              "Time Has Run Out",
-              "MARAUDA - Casket (White Eyes Bootleg)",
-              "Sennago - Forgotten Tears [Exclusive]",
-              "KROWW - Biomechanik",
-              "JACKNIFE - Code Black",
-              "Code: Pandorum x Evilwave - Nyctophobia",
-              "BLOODSET - Ritual",
-              "Code: Pandorum - Sacrament",
-              "KROWW - ENDOKORE",
-              "The Organ's Breath",
-              "Pancode - Violence",
-              "EPIC ROCK | ''Black Sky'' by WAR＊HALL",
-              "Remember The Name (Official Video) - Fort Minor [4K]",
-              "VALHALLA CALLING by Miracle Of Sound ft. Peyton Parrish - OFFICIAL VIDEO",
-              "White Eyes - Bloodbearer",
-              "PIKL3R & Padifer - Stay Here",
-              "Kranary - Acedia",
-              "Eminem - Lose Yourself [HD]",
-              "UNKSRA - Desmodus",
-              "Diskirz - Unstoppable (ft Majin MC) [DEATH BOOSTED]",
-              "Disclosure - Help Me Lose My Mind (Mazde Remix)",
-              "EPIC ROCK | ''Decimator'' by All Good Things (2017)",
-              "eXecrius - Lord of Blasphemy",
-              "Sennago - Awareness",
-              "Satren - Promises (Carthus Remix)",
-              "The Living Proof - End of Days",
-              "The Living Proof - Control",
-              "Alter Ego - Voices Within",
-              "Karbonite - Mayflower (Abhorrent VIP) [Exclusive]",
-              "KROWW - Call of the Void",
-              "DEFECT - Decimate",
-              "Astera - Basilisk (Bass Boosted)",
-              "Moth - Aokigahara",
-              "Busta Rhymes - Touch It (Deep Remix) [Slowed & BassBoosted]",
-              "EPIC ROCK | ''Rise'' by Valley Of Wolves",
-              "Dubloadz - Dead Inside",
-              "Blues Saraceno - The Devil You Know",
-              "[Deathstep] Dyroth - Destruction",
-              "6 SENZ - Function",
-              "UNKSRA - Jormungand",
-              "UNKSRA - Midnight Quest",
-              "Fast & Furious: Hobbs & Shaw Soundtrack | Apashe - Lacrimosa",
-              "KROWW - Divine Power",
-              "EPIC ROCK | ''Born Ready'' by All Good Things (2017)",
-              "Kumarion - Want It (Bass Boosted)",
-              "UNKSRA - The Wraith",
-              "The Living Proof - Beautiful Madness",
-              "Haunt (WHITE Remix)",
-              "Monster In Me",
-              "Sennago - Mali Spiritus",
-              "The Dark Ages (in style of Mick Gordon)",
-              "grandson - Stick Up",
-              "50 Cent - In Da Club (MTV Version)",
-              "UNKSRA - Ravenous",
-              "EPIC ROCK | \"We Are Legends'' by Valley Of Wolves",
-              "UNKSRA - The Obscurus [Tribute to The Wizarding World]",
-              "Vimori - Identity",
-              "PIKL3R - 3AM, voces en mi cabeza",
-              "Unksra - Malefictum",
-              "Majoras Drep - Armageddon",
-              "Moth - In Dissent",
-              "Diskirz - Corrupt Souls",
-              "Pancode - Godless",
-              "Skyheaven - Bring Me Your Sin",
-              "SYN - Psycho",
-              "Nine Lashes - Never Back Down",
-              "UNKSRA - Morrigan",
-              "UNKSRA - Carpe Noctem",
-              "Veinweaver - Abysswalker [Exclusive]",
-              "THE DOOMSLAYER",
-              "Tulpa - Altered",
-              "EPIC ROCK | ''Rise Up'' by Extreme Music",
-              "Dirtyphonics & Sullivan King - Hammer",
-              "Code: Pandorum & Lord Swan3x - Deathstep Tutorial",
-              "PIKL3R - Don't Let This World Die In Darkness",
-              "Dust - Deliverance",
-              "Code: Pandorum - Brotherhood",
-              "[Deathstep] Wretched - The End",
-              "EPIC BADASS MUSIC \"Adam Jensen - The Hunter\"",
-              "Halogen - U Got That [EPIC METAL COVER] (Little V)",
-              "NEFFEX - Fight Back [Official Video] No.37",
-              "swarm. - Kreophagia",
-              "Bass To The Dome",
-              "EPIC ROCK | ''Bad'' by Royal Deluxe",
-              "Sennago & Skyheaven - Imentet",
-              "Prof - Andre The Giant (Official Video)",
-              "Kai Wachi - All My Demons",
-              "EPIC ROCK | ''Eye of the Storm'' by WattWhite",
-              "INHUMAN - PROPHET",
-              "Concavenator x Ruined - Perverted Doxology",
-              "All My Demons",
-              "Linear",
-              "KROWW - Disasterpiece",
-              "Dust - Language of the Sword [Hydraulic Damnation x Community Mix Promotions x Dubstep Night]",
-              "Carol of The Bells - Epic Version",
-              "Kurupt FM - Heart Monitor Riddim (Grime Allstars Remix)",
-              "Devouring Annihilation - Seraph of Death",
-              "Psyfiend - Lullaby"
-            ]
-          }
-        ]
-      },
-      {
-        "id": 6,
-        "code": "DISC 06",
-        "title": "Hell Yeah — Vol. 5",
-        "subtitle": "Burned MP3 CD • 64 Tracks",
-        "isCustomGraphic": false,
-        "playlistUrl": "https://music.youtube.com/playlist?list=PLOmp4tb1eywp1Q9CIEZ9z2-ddqFGwNc68",
-        "folders": [
-          {
-            "name": "Hell Yeah",
-            "tracks": [
-              "Lil Jon & The East Side Boyz - What U Gon' Do (Brevis & Onur Ormen Remix)",
-              "Virtual Riot - Purple Dragons (Dragons VIP)",
-              "Dope",
-              "Dogma (Instrumental)",
-              "PANDORUM",
-              "IOBAGG X MO X BAZOOKA - BE CU MINE",
-              "Hairitage - Powerful",
-              "Summoning",
-              "Moon Over the Castle (from GRAN TURISMO 7)",
-              "Shady Intentions (REAPER Remix)",
-              "Yamanooto",
-              "Kai Wachi - DEMIGOD",
-              "BLOODSET - Jigsaw",
-              "Demeter - Dope",
-              "Covener - Alienation",
-              "Sennago - Defiance",
-              "Metallica - Enter Sandman (The Living Proof Remix)",
-              "Ship Wrek & Zookeepers - Ark | Future Bass | NCS - Copyright Free Music",
-              "Finesse (feat. Koncept P, willnosleep & avonosleep)",
-              "WYR GEMI - Black Samurai",
-              "REAPER & Awoltalk - Hysteria",
-              "Dirty Religion - Apathetic",
-              "Blvk Sheep & Felmax - Dual Blade | Subsidia",
-              "DVBBS - Pyramids (Fatho Remix)",
-              "Deathpact - BLOODLINE (Official Audio)",
-              "Araf - Requiem",
-              "Death Is No More (Slowed) (Official Visualizer)",
-              "FEAR",
-              "Prof - No feat. Cashinova (Official Video)",
-              "Particularly",
-              "Kai Wachi - The Keeper (ft. Macntaj)",
-              "Lppassy96 - New Moon",
-              "Through The Angel's Eye - Salvation [Exclusive]",
-              "IOBAGG - DUPA GEAMANDURA",
-              "Lil Jon ft. Three 6 Mafia - Act a Fool (Anbroski Remix)",
-              "Araphel - Vessel of the Cosmic Eye",
-              "Хаски - Иуда",
-              "Hyper - Spoiler Metal Cover (Cyberpunk 2077 Goes Metal)",
-              "SAINt JHN - \"Roses\" Imanbek Remix (Official Audio)",
-              "Ром и Смерть. Доктор Ливси Идёт под Фонк!!!!",
-              "TrippyThaKid - LEEDLE LEEDLE LEE (Official Music Video)",
-              "TrippyThaKid - I LOWKEY LUV HOWARD JOHNSON (PROD. ZCR & Swvde) (Official Music Video)",
-              "Jidenna - Long Live the Chief (Official Video)",
-              "Warframe | We All Lift Together",
-              "MARAUDER",
-              "SUKI - takko",
-              "Override (Slowed + Reverb)",
-              "Satren - No More",
-              "Deathpact - 0506+056 (Official Audio)",
-              "Doomsday",
-              "QroH & Necrodemie - Affliction Of Mind (QroH VIP)",
-              "MIDNIGHT",
-              "Japanese Stutter | Suave Lee (Original Creator) (OUT NOW ON SPOTIFY ETC)",
-              "Wels - NXSTY BLOOD (Slowed + Reverb)",
-              "Aces",
-              "Lobster",
-              "Stephen Baysted - Quies Ante Tempestatem (Project CARS Soundtrack)",
-              "Гио ПиКа - Едет Катится",
-              "KSLV - Disaster",
-              "Ryan Jones - Japanika",
-              "Smoke - Cowbell cult (No words)",
-              "AirplaneMode",
-              "FLESH. by Fnatylqrd",
-              "Harsh x HaXim - Fallen (Harsh VIP)"
-            ]
-          }
-        ]
-      }
+[
+  {
+    "id": 1,
+    "code": "DISC 01",
+    "title": "DJ Sebi — Locul tau in inima mea",
+    "subtitle": "2 videoclipuri • Pressed CD",
+    "isRetail": true,
+    "artUrl": "./dj-sebi.jpg",
+    "playlistUrl": "",
+    "tracks": [
+      "Intro - Locul tau in inima mea",
+      "Track 02",
+      "Track 03",
+      "Track 04",
+      "Track 05",
+      "Track 06",
+      "Track 07",
+      "Track 08",
+      "Track 09",
+      "Track 10",
+      "Videoclip 1 (Bonus Video)",
+      "Videoclip 2 (Bonus Video)"
     ]
+  },
+  {
+    "id": 2,
+    "code": "DISC 02",
+    "title": "R-M — Vol. 1",
+    "subtitle": "Burned MP3 CD • 50 Tracks",
+    "isRetail": false,
+    "artUrl": "./maxell.jpg",
+    "playlistUrl": "https://music.youtube.com/playlist?list=PLOmp4tb1eywrWwJUMbuht2HHsap6eqTKo",
+    "tracks": [
+      "Jade",
+      "The Grand Conjuration",
+      "The Ascent",
+      "Gojira-The Art Of Dying",
+      "Dragonfly",
+      "Atlantic",
+      "Global Warming",
+      "GOJIRA - 'Flying whales'",
+      "Dream the Dead",
+      "Daughter of the Mountain",
+      "Salt",
+      "Songs for No One",
+      "Episode",
+      "KILLER BE KILLED - From A Crowded Wound (OFFICIAL MUSIC VIDEO)",
+      "Vicarious",
+      "Animals As Leaders ＂CAFO＂ official music video",
+      "Game Over",
+      "Kai Tangata",
+      "Aurora",
+      "New Found",
+      "Where Dragons Dwell",
+      "Rivers of Nihil - Where Owls Know My Name (OFFICIAL VIDEO)",
+      "Gojira - Explosia (LYRIC VIDEO)",
+      "Residual",
+      "Magma",
+      "Rivers of Nihil - The Silent Life (OFFICIAL VIDEO)",
+      "BLACK CROWN INITIATE - ＂Stench of the Iron Age＂",
+      "Wolf down the earth",
+      "CALIGULA'S HORSE - Marigold (Album Track)",
+      "Anciients - Raise The Sun",
+      "Red Fang - Throw Up",
+      "Dreamless",
+      "Closer (My Love)",
+      "The Night Subscriber",
+      "Dark Hair Down",
+      "Soulcarvers (Acoustic Version)",
+      "God Forsaken",
+      "Persepolis",
+      "Gojira - Esoteric surgery",
+      "Mouth of Kala",
+      "The Gift of Guilt",
+      "Carriers of the Plague",
+      "Amascut’s Promise (Remix)",
+      "FLESHGOD APOCALYPSE - Monnalisa (OFFICIAL MUSIC VIDEO)",
+      "Low Lands",
+      "Gojira - Born For One Thing [OFFICIAL VIDEO]",
+      "Yekteniya I",
+      "RED FANG - ＂Wires＂ (Official Music Video)",
+      "The Stormchaser",
+      "Into The Black Light"
+    ]
+  },
+  {
+    "id": 3,
+    "code": "DISC 03",
+    "title": "R-M — Vol. 2",
+    "subtitle": "Burned MP3 CD • 70 Tracks",
+    "isRetail": false,
+    "artUrl": "./maxell.jpg",
+    "playlistUrl": "https://music.youtube.com/playlist?list=PLOmp4tb1eywrWwJUMbuht2HHsap6eqTKo",
+    "tracks": [
+      "Slipknot - The Devil In I [OFFICIAL VIDEO]",
+      "The Shooting Star",
+      "Gojira - Oroborus (With Lyrics)",
+      "Forbidden Fire",
+      "OPETH - Sorceress (OFFICIAL LYRIC VIDEO)",
+      "The Fall",
+      "Alkaloid - Kernel Panic (official premiere)",
+      "Lascivious",
+      "Sangreal",
+      "Ghost Brigade - Suffocated",
+      "Gojira - Amazonia [OFFICIAL VIDEO]",
+      "Demon Hunter ＂Someone To Hate＂ (Lyric Video)",
+      "A Home",
+      "Hollow",
+      "COLD BLOOD",
+      "The End of Heartache",
+      "RISHLOO - Scissorlips",
+      "Feathergun in the Garden of the Sun",
+      "Golem",
+      "Septicflesh - Pyramid God",
+      "DECAPITATED - Earth Scar (OFFICIAL MUSIC VIDEO)",
+      "An Alternative to Freedom",
+      "The Monolith Deathcult - Fist of Stalin (Official Lyric Video)",
+      "AAA (Remastered)",
+      "Pain Is a Master",
+      "The link",
+      "RED FANG - ＂Prehistoric Dog＂ (Official Music Video)",
+      "Ain't No Change",
+      "Turntail",
+      "Decapitated - Spheres Of Madness",
+      "The New Cult King",
+      "Sober",
+      "Neuromancer",
+      "KATAKLYSM - Crippled And Broken (OFFICIAL VIDEO)",
+      "The Rise of Hannibal",
+      "[4K] Gojira - The Cell (Red Rocks 2017)",
+      "Ihsahn - Arcana Imperii (Official Music Video)",
+      "Rizzo",
+      "AT THE GATES - Spectre Of Extinction (OFFICIAL VIDEO)",
+      "The Great Dandolos",
+      "MELECHESH - Multiple Truths (LYRIC VIDEO)",
+      "The Reckoning",
+      "Portrait of a Headless Man",
+      "KILLER BE KILLED - Melting Of My Marrow (OFFICIAL TRACK)",
+      "The Tempest",
+      "Keepers of the Gate",
+      "Unspoken",
+      "Departures",
+      "Reclaim the Sun",
+      "Gojira - The Axe (LYRIC VIDEO)",
+      "FALLUJAH - The Void Alone - Featuring Tori Letzler‎ (OFFICIAL TRACK & LYRIC VIDEO)",
+      "MESHUGGAH - Bleed (Official Music Video)",
+      "Sacrifice",
+      "Planned Obsolescence",
+      "Alchemy Alice",
+      "Blood Of The Scribe",
+      "Headstrong",
+      "KILLER BE KILLED - Deconstructing Self-Destruction (OFFICIAL VISUALIZER VIDEO)",
+      "Our Time Is Now",
+      "Remembrance",
+      "KADAVAR - Last Living Dinosaur (OFFICIAL VIDEO)",
+      "Psycroptic - COLD (Official Music Video)",
+      "Twelve Labors",
+      "Oceanrise",
+      "Gojira - Liquid Fire (LYRIC VIDEO)",
+      "Orange Goblin - Red Tide Rising - Official Video ｜ Metal Hammer",
+      "Ain't That a Bitch",
+      "Gojira - Vacuity [OFFICIAL VIDEO 2008]",
+      "Say Goodnight to the World",
+      "HYPOCRISY  - Eraser (OFFICIAL MUSIC VIDEO)"
+    ]
+  },
+  {
+    "id": 4,
+    "code": "DISC 04",
+    "title": "R-M — Vol. 3",
+    "subtitle": "Burned MP3 CD • 86 Tracks",
+    "isRetail": false,
+    "artUrl": "./maxell.jpg",
+    "playlistUrl": "https://music.youtube.com/playlist?list=PLOmp4tb1eywrWwJUMbuht2HHsap6eqTKo",
+    "tracks": [
+      "Decima",
+      "Damageplan - Pride",
+      "Gojira - Toxic garbage island",
+      "Falling Away from Me",
+      "One Hand Killing",
+      "bolt thrower the killchain",
+      "Disturbed - Stricken (Official Music Video) [4K UPGRADE]",
+      "System Of A Down - B.Y.O.B. (Official HD Video)",
+      "Get Out Alive",
+      "Deluge",
+      "Mark Morton - Cross Off ft. Chester Bennington",
+      "GOJIRA - L'Enfant Sauvage [OFFICIAL VIDEO]",
+      "My Last Creation",
+      "Gojira - Stranded (LYRICS)",
+      "Wrong Side of Heaven",
+      "Denial",
+      "BLUES PILLS - High Class Woman (OFFICIAL MUSIC VIDEO)",
+      "Black Label Society - A Love Unreal (Official Music Video)",
+      "Sunlight ⧸ Moonlight",
+      "Silent Machine",
+      "Cleansation",
+      "My Curse",
+      "STRAPPING YOUNG LAD - Love？ (OFFICIAL VIDEO)",
+      "Legion of Monsters",
+      "Mother Sky",
+      "GOROD ｜ Bekhten's Curse [OFFICIAL MUSIC VIDEO]",
+      "Monster",
+      "Oxygen",
+      "KILLER BE KILLED - Dream Gone Bad (OFFICIAL MUSIC VIDEO)",
+      "Disturbed - Criminal [Official Audio]",
+      "Disturbed - The Infection [Official Audio]",
+      "Septic Flesh [Annubis]",
+      "Black Crown Initiate - Song Of The Crippled Bull",
+      "Living to Die",
+      "System Of A Down - Aerials (Official HD Video)",
+      "FALLUJAH - 'Scar Queen' (OFFICIAL TRACK VIDEO)",
+      "In the Shadows",
+      "FLESHGOD APOCALYPSE - Sugar (OFFICIAL MUSIC VIDEO)",
+      "Wyrm of Doom",
+      "This Emptiness",
+      "Chimaira - Pure Hatred",
+      "Gojira Yama's Messengers",
+      "Broken Guardian",
+      "Korn - Freak On A Leash (Official Video)",
+      "Throne of the Sunset",
+      "Planet of Zeus ＂Them Nights＂ Official Music Video",
+      "Gojira - Sphinx [OFFICIAL VIDEO]",
+      "Come Whatever May",
+      "Espada (feat. Spiro)",
+      "Fine Again",
+      "Youngest Daughter",
+      "Rishloo - Freaks & Animals (720p)",
+      "Starset - Satellite (Official Audio)",
+      "Septicflesh - Vampire from Nazareth",
+      "No",
+      "Korn - Twisted Transistor",
+      "Wheel - Vultures (Official Video)",
+      "Can You Feel My Heart",
+      "GOJIRA  - Only Pain ( LIVE)",
+      "Slayer - Bloodline",
+      "Alcohaulin' Ass (Album Version)",
+      "RED FANG - ＂Flies＂ (Official Track)",
+      "Type O Negative - Out Of The Fire ｜ slowed",
+      "From the Flame",
+      "Trivium - Drowning In The Sound (Official Audio)",
+      "Façade",
+      "Gojira - The Heaviest Matter of The Universe (Live at Vieilles Charrues Festival 2010)",
+      "Toothgrinder - The Shadow (Official Audio)",
+      "Departure to Destruction",
+      "H.A.T.E.",
+      "Ultraviolet",
+      "Chimaira - The Venom Inside",
+      "Mastodon - Blood And Thunder",
+      "Forest",
+      "VADER - Triumph Of Death (OFFICIAL TRACK)",
+      "This Is Absolution",
+      "Clarion",
+      "Planet of Zeus ＂Leftovers＂ (Official Music Video)",
+      "Gojira - Born In Winter [OFFICIAL VIDEO]",
+      "Feel Invincible",
+      "Human",
+      "Planet of Zeus - A Girl Named Greed (Official Audio)",
+      "Innocense",
+      "Disturbed - Down With The Sickness (Official Music Video) [HD UPGRADE]",
+      "System Of A Down - Hypnotize (Official HD Video)",
+      "Gojira - Backbone"
+    ]
+  },
+  {
+    "id": 5,
+    "code": "DISC 05",
+    "title": "R-M — Vol. 4",
+    "subtitle": "Burned MP3 CD • 77 Tracks",
+    "isRetail": false,
+    "artUrl": "./maxell.jpg",
+    "playlistUrl": "https://music.youtube.com/playlist?list=PLOmp4tb1eywrWwJUMbuht2HHsap6eqTKo",
+    "tracks": [
+      "Wings of Feather and Wax",
+      "Shockwave",
+      "Slipknot - Duality [OFFICIAL VIDEO] [HD]",
+      "Shawn James - No Blood From A Stone (Official Lyric Video)",
+      "Everywhere I Look (Acoustic)",
+      "System Of A Down - Question! (Official HD Video)",
+      "KADAVAR - Into The Wormhole (OFFICIAL VIDEO)",
+      "Kingdom",
+      "Dark Divine - Cold (Official Stream Video)",
+      "Invincible",
+      "IN FLAMES - I Am Above (OFFICIAL VIDEO)",
+      "Tetrarch - I'm Not Right [Official Music Video]",
+      "KATAKLYSM - Underneath The Scars (OFFICIAL MUSIC VIDEO)",
+      "Left of Center",
+      "Rose Wire",
+      "System Of A Down - Toxicity (Official HD Video)",
+      "I Paint What I See",
+      "Gojira  - Silvera (Lyrics)",
+      "Toothgrinder - HVY (Official Lyric Video)",
+      "Evolution",
+      "STRAPPING YOUNG LAD - Almost Again (OFFICIAL VIDEO)",
+      "Three Days Grace - Animal I Have Become (Official Video)",
+      "Earshot - Wait (Official Music Video) ｜ Warner Vault",
+      "Disturbed - Decadence [Official Audio]",
+      "Panic",
+      "Anaal Nathrakh - Forward! (OFFICIAL)",
+      "System Of A Down - Spiders (Official HD Video)",
+      "I Am Machine",
+      "In Due Time",
+      "What I've Done",
+      "System Of A Down - Chop Suey live (HD⧸DVD Quality)",
+      "Slow Chemical",
+      "KILLER BE KILLED - Curb Crusher (OFFICIAL VIDEO)",
+      "Shuriken",
+      "This Fire",
+      "Stoned Jesus - Wound (Live Experience Video)",
+      "Broken Promises",
+      "Static-X Skinnyman",
+      "Face the Pain 2012",
+      "Red Fang - Reverse Thunder",
+      "System Of A Down - I-E-A-I-A-I-O (Official Audio)",
+      "Stoned Jesus - Here Come The Robots (Official Video)",
+      "Fake It",
+      "Gnome - Wenceslas (Official Video)",
+      "Painkiller",
+      "System Of A Down - Sugar (Official HD Video)",
+      "Bloom",
+      "Divided.. Conquer Them",
+      "I Am the Warlock (feat. Jack Black)",
+      "Addiction",
+      "Coming For You",
+      "CELTIC FROST -  A Dying God Coming Into Human Flesh (OFFICIAL VIDEO)",
+      "Die MF Die",
+      "Closer",
+      "Nightmare",
+      "Vanguard",
+      "Scars that I'm Hiding",
+      "RED FANG - ＂Hank Is Dead＂ (Official Music Video)",
+      "Korn - Coming Undone",
+      "Skillet - Monster (Official Video)",
+      "heavens",
+      "The Haunted - The Fallout",
+      "The Only",
+      "Priestess - Lay Down (Official Video)",
+      "Damageplan - Save Me { Official Video }  W ⧸ Lyrics",
+      "Stoned Jesus - Thessalia (live premiere)",
+      "Calamity",
+      "system of a down - Deer Dance",
+      "The Andromedan, Pt. IV： The Darkness Within",
+      "Faint",
+      "System Of A Down - Atwa",
+      "Why",
+      "System Of A Down - Lonely Day (Official HD Video)",
+      "Fu Manchu - Eatin' Dust - 1999",
+      "Endless Cycle",
+      "Dax Riggs Didn't Know Yet What I'd Know When I Was Bleedin'",
+      "Cybernetic Assault"
+    ]
+  },
+  {
+    "id": 6,
+    "code": "DISC 06",
+    "title": "Unga Boomga — Vol. 1",
+    "subtitle": "Burned MP3 CD • 97 Tracks",
+    "isRetail": false,
+    "artUrl": "./maxell.jpg",
+    "playlistUrl": "https://music.youtube.com/playlist?list=PLOmp4tb1eywquk5pjKQmDMgFiiFah3kec",
+    "tracks": [
+      "Victory Lap Five",
+      "Grim Salvo x Cardeairè Jack - HEART OF DARKNESS (prod. ³³marrow)",
+      "Sleepwalker (Ultra Slowed & Reverb)",
+      "Voyager Twins",
+      "Gramatik Vs. Nirvana Vs. Bill Burr - Lake Of Fire Flip",
+      "Purify (slowed and reverb)",
+      "Witchouse 40k - LOCUST EFFECT (Official Music Video) Dir. Cyberdrip$",
+      "smezir_2 (Slowed)",
+      "Wake Up",
+      "DSIDE BAND – Taliba (Bass Boosted)",
+      "NEON BLADE",
+      "After Dark",
+      "Moving on",
+      "worry (ultra slowed)",
+      "KAMAARA - Dr0nched In Sw0t (feat. Grim Salvo) (prod. ³³marrow)",
+      "Limit To Your Love",
+      "factory settings",
+      "Personality",
+      "Hozier - Take Me To Church (YABØII Remix)",
+      "addiction (Slowed)",
+      "「AMV」- Villains and Heroes",
+      "Fuera del Planeta",
+      "Everything Black (feat. Mike Taylor)",
+      "ECLIPSER (Ultra Slowed)",
+      "Requiem for Peace",
+      "jessie (Slowed)",
+      "Mystery Lady",
+      "Rival - Satisfy The Rage (ft. Micah Martin) [Lyric Video]",
+      "byebye.wav (2X ULTRA SLOWED+REVERB)",
+      "Everyone You Know - The Drive (Official Video)",
+      "I Will Never Run「AMV」- Royalty",
+      "Purpose",
+      "At Eternal's Gate",
+      "The Lost Soul Down (Slowed & Reverb)",
+      "Let Go",
+      "Underworld",
+      "Sahara (Original Mix)",
+      "CHAOS SIDE (Super Slowed)",
+      "IVOXYGEN - YOUNG KID",
+      "Bangarang (feat. Sirah)",
+      "MORNING IN THE EAST COAST",
+      "Poster boy x Asa Mitaka (Slowed+Reverb)",
+      "Kwabs - Walk (Official Video)",
+      "Assault (Sibewest Remix slowed)",
+      "Two One Six",
+      "89 SECONDS TO MIDNIGHT (SUPER SLOWED)",
+      "ATLiens - Crazy (SubDocta Remix)",
+      "just another rap song",
+      "Want It",
+      "NO END",
+      "大展鴻圖(Blueprint Supreme)",
+      "Sunlight or Demise",
+      "Untitled #13 (Super Slowed)",
+      "Blood ⧸⧸ Water",
+      "Wine Pon You",
+      "Life (feat. Faceless 1-7)",
+      "Nightscrapan",
+      "archangel (Ultra Slowed)",
+      "Dark Light",
+      "L'ENTOURLOOP & AZAHRIAH - Don't Turn The Bass Down (Official Video)",
+      "Rihanna - S&M (NORTKASH & 5ROCK Remix) ｜ CAR VIDEO 4K",
+      "LOUDER",
+      "Show Me Your Back",
+      "Praise The Lord (Da Shine)",
+      "HE's Back X Gojo [VVV] (VVV)",
+      "Righteous (SLOW & REVERB)",
+      "Awake",
+      "IMMA",
+      "Deira City Centre",
+      "Heartburn (Slowed + Reverb)",
+      "Sahara (Slowed)",
+      "The Rain",
+      "On My Own (Skeler Vision)",
+      "Cool for the Summer (hardstyle remix + SUPER SLOWED)",
+      "YCK - What They Wanna Be",
+      "Seppuken",
+      "Moistrus - Warfare",
+      "DeadInside (feat. YTD) (Xravial Remix)",
+      "The Maze Guardian",
+      "Two Cents",
+      "SLAVA FUNK 2.0 (SLOWED)",
+      "Yeat - Money So Big (Instrumental⧸TikTok Remix)",
+      "Awakening! (Slowed + Reverb)",
+      "GDFR (feat. Sage the Gemini & Lookas) [K Theory Remix]",
+      "Derek Pope - Bright Lights (prod. by Derek Pope)",
+      "Off Air",
+      "The Search (Edit)",
+      "Gramatik - Puff Your Cares Away (Lyric Video)",
+      "Bate Forte e Dança (Ultra Slowed + Reverb)",
+      "Goodbye (feat. Lyse) (Slow Version)",
+      "BEARDED LEGEND - MOTIVATED (prod. bearded legend)",
+      "ODIUM (slowed)",
+      "Cope Harder",
+      "Murder In My Mind - Kordhell ( slowed + reverb ) remix by S.Versace",
+      "The Box",
+      "Version of you performing right now is not your peak - it never was (Super Slowed)",
+      "Off The Leash ( Instrumental ) ⧸⧸ slowed + reverb"
+    ]
+  },
+  {
+    "id": 7,
+    "code": "DISC 07",
+    "title": "Unga Boomga — Vol. 2",
+    "subtitle": "Burned MP3 CD • 121 Tracks",
+    "isRetail": false,
+    "artUrl": "./maxell.jpg",
+    "playlistUrl": "https://music.youtube.com/playlist?list=PLOmp4tb1eywquk5pjKQmDMgFiiFah3kec",
+    "tracks": [
+      "DAEGHO - BLUDLUST 💮",
+      "HELLDIVER - KIL KROOK",
+      "YUM YUM (Super Slowed)",
+      "Live Another Day (Slowed + Reverb)",
+      "Fluxxwave (Lay with Me, Slowed + Reverb)",
+      "Black Catcher",
+      "NO DISCUSSION",
+      "The Prodigy - Breathe (GLASSPVCK flip)",
+      "Assault (Sibewest Remix)",
+      "Guts Rage X Wake Up",
+      "RUNWAY",
+      "vbe mer",
+      "i'm yours",
+      "No Cooperation",
+      "FROGGY RIDDIM",
+      "skeler & vowl. - vbe mer",
+      "Robstar - Snake Eyes [Prod. Collins]",
+      "Vois Sur Ton Chemin",
+      "Big Dawgs",
+      "Below Zero",
+      "Partial",
+      "Jake Hill - Selfish",
+      "SERAPHIM (feat. VIXYM) (Over Slowed + Reverb)",
+      "Tilted",
+      "Break It Down",
+      "Love Me Back",
+      "Layto x Neoni - Ghost Town",
+      "bbno$ - lil' freak (starring MoistCr1TiKaL)",
+      "Dance Like We Used To",
+      "Trees of the Valley",
+      "Effin - Partial",
+      "Die (Guitar Remix)",
+      "The Score - Stronger",
+      "Welcome to the Party",
+      "BITE BACK!",
+      "Keep Up",
+      "Don't give up, (Phonk)",
+      "DARK RIDER (Slowed × Reverb)",
+      "KALEO - Way Down We Go (Bandit Remix)",
+      "IRA DE DEUS (SUPER SLOWED)",
+      "Righteous",
+      "REVERIE (Super Slowed)",
+      "Rengoku",
+      "miss me (slowed + reverb)",
+      "SOUTH II",
+      "Confetti - Rob A Bank ｜ AMV",
+      "Falling (VIP)",
+      "Kittycore (Ultra Slowed)",
+      "STOLEN WHIP",
+      "ELA JOGA NA HORA (Ultra Slowed)",
+      "AKIRA",
+      "[FREE] Early 2000's Bouncy Arabian Hip Hop Rap Beat Instrumental",
+      "RITMO DO TROVÃO (SLOWED)",
+      "HIGHEST IN THE ROOM",
+      "How She Walk",
+      "Bassline Growler",
+      "Technike (ultra slowed) vashone",
+      "RJ Pasin - Remedy",
+      "Forget About Me",
+      "Oh The Larceny - ＂Another Level＂ (Official Lyric Video)",
+      "Why Not",
+      "I Got Summer On My Mind (Still Dre Remix)",
+      "MTG 2.0",
+      "Kyoto",
+      "COLLAB",
+      "House of Glass",
+      "ECLIPSER (Super Slowed)",
+      "Sexyback",
+      "REI DO BRASIL (ULTRA SLOWED)",
+      "PRIME TIME (SLOWED)",
+      "Not Even Ghosts Are This Empty",
+      "deadrose (Ultra Slowed)",
+      "AURORA LOVE",
+      "Tennis",
+      "4 Raws (slowed)",
+      "Built to Last",
+      "help urself (Slowed)",
+      "RAVE",
+      "MVKO - F M J (ft. SINIZTER)",
+      "HOLLOW",
+      "kompa pasión (froze n slowed)",
+      "「AMV」- Tell Me That I Can't",
+      "SHADOW (Slowed + Reverb)",
+      "OPEN UR EYE",
+      "Xue Hua Piao Piao, but it's a wave phonk",
+      "BRODYAGA FUNK (OVER SLOWED + REVERB)",
+      "two：22 x trippythakid - no!",
+      "SYNTHETIC (SUPERSLOWED)",
+      "Ghost",
+      "Prompto - Eternal",
+      "Double Crossing",
+      "Drink A Yak",
+      "Solitude - Slowed",
+      "Heard That",
+      "Bankai",
+      "Supersonic (my existence)",
+      "GODZILLA!",
+      "PSYCHO CRUISE (Slowed + Reverb)",
+      "KNSRK - INSPIRED BY CRYSTALS",
+      "Pharaoh Walk",
+      "End of the World",
+      "RAY VOLPE & TYNAN - DANGER (Official Visualizer)",
+      "DON`T STOP",
+      "Rack",
+      "Ancient Egypt",
+      "Kage",
+      "starly (Slowed)",
+      "八方來財 (Stacks from All Sides) (Slowed)",
+      "RAPTURE",
+      "Prompto x Downfvll x Sugs - Task Force",
+      "AMETHYST",
+      "SLAVA WINTERFELL! (Slowed)",
+      "honey badger (slowed & reverb)",
+      "Koshiro",
+      "Bloody Knuckles",
+      "「AMV」- Cravin' (feat. Kendyle Paige)",
+      "bbno$ - let em know",
+      "Baby Gos x DOWNFVLL - Lolita",
+      "Can’t Feel Myself",
+      "Tantra",
+      "SIREN - Super Slowed"
+    ]
+  },
+  {
+    "id": 8,
+    "code": "DISC 08",
+    "title": "Unga Boomga — Vol. 3",
+    "subtitle": "Burned MP3 CD • 158 Tracks",
+    "isRetail": false,
+    "artUrl": "./maxell.jpg",
+    "playlistUrl": "https://music.youtube.com/playlist?list=PLOmp4tb1eywquk5pjKQmDMgFiiFah3kec",
+    "tracks": [
+      "Create Machines",
+      "Shamisen Hunter",
+      "ATLiens - Obsidian Vortex [Official Audio]",
+      "NO WAY BACK",
+      "Batzorig Vaanchig - Chinggis khaanii Magtaal [TRAP REMIX]",
+      "I WILL HAVE MY REVENGE",
+      "BRODYAGA FUNK EKI (SLOWED)",
+      "YUM YUM (Slowed)",
+      "Bad Attitude",
+      "MAKAVELIGODD - BETTY (prod. TOXICGODD)",
+      "Icarus (feat. soap.)",
+      "Move Your Body (RAIZHELL Remix)",
+      "[SOLD] ASAP ROCKY TYPE BEAT - ＂STRINGS ATTACHED＂ [HARD]",
+      "Zangetsu",
+      "1234",
+      "Murder In My Mind",
+      "IVOXYGEN - Wake Up Sober (prod. CapsCtrl)",
+      "invincible.",
+      "Say Cheese and Die",
+      "OneShot",
+      "CADERO FUNK 1.0 (Super Slowed)",
+      "Hotline",
+      "void.exe - ultra slowed",
+      "Love Game (Slowed)",
+      "BEAT EM DOWN",
+      "Kendrick Lamar - m.A.A.d city (Slowed-Bass Boosted)",
+      "SKORN - Ultra Slowed",
+      "REI DO BRASIL (SUPER SLOWED)",
+      "Petty",
+      "PALE HORSE",
+      "I'M THE SHADOWS",
+      "pride (slowed)",
+      "Black n White",
+      "EARTH 42",
+      "WHERE HAVE YOU BEEN (Kryd Hoodtrap ⧸ Mylancore)",
+      "Addison Rae - Fame Is A Gun (VI Remix)",
+      "ENDISNIA - Slowed",
+      "We All Lift Together (From ＂Warframe＂)",
+      "MILLION DOLLAR BABY",
+      "RAY VOLPE - SEE YOU DROP (Official Visualizer)",
+      "pulsebreaker - slowed",
+      "SXMPRA - COWBELL WARRIOR! (prod. SXMPRA)",
+      "MONTAGEM CORAL (DJ HOLANDA, MC GW, MC TH & MC CYCLOPE)",
+      "SEMPERO (Super Slowed)",
+      "Step Back!",
+      "SIREN - Slowed Reverbed",
+      "ATLiens - Fuck That [Official Audio]",
+      "PSYCHO CRUISE",
+      "Gas Pedal",
+      "ATLiens - Tantra [Official Audio]",
+      "eiby, Nakama - ENDISNIA (Slowed)「TikTok Jumpstyle」",
+      "Momo`s Rage",
+      "Test of Faith",
+      "Feel The Bass",
+      "MUDD",
+      "Trap Down Low",
+      "Blood",
+      "POOR",
+      "Machina",
+      "IRA DE DEUS (SPED UP)",
+      "因果(Karma Code)",
+      "NEFFEX - Go! 🚀 ｜ AMV",
+      "Limbo",
+      "Don't Hide (Slowed - Jersey Club)",
+      "tuMaggz - As Above, So Below",
+      "Iron Man",
+      "Yoshiko",
+      "Jiandro - Billie Jean Remix SLOWED (His Eyes Were Like Mine)",
+      "Crystal Skies (Sped Up)",
+      "FUNK INFERNAL (ULTRA SLOWED)",
+      "ADAPT OR DIE (INSTRUMENTAL)",
+      "Kavkaz",
+      "AK3K - Exodia (prod. Netuh)",
+      "JUST DANCE (Slowed)",
+      "AMG",
+      "ALIEN FLAME - shometyle",
+      "WAKE UP!",
+      "vampire heart",
+      "A Place For My Head - Super Slowed",
+      "Nightmare (Slowed)",
+      "Ryōiki Tenkai",
+      "GET YA",
+      "Doozling%19",
+      "excalibur",
+      "abstract!",
+      "Headlock (Hoodtrap) (Slowed)",
+      "THE COST",
+      "ONYX (Slowed)",
+      "LEGACY",
+      "AMOK (SUPER SLOWED)",
+      "Look Alive",
+      "starly",
+      "BRUSHED DOWN!",
+      "bbno$ & Rich Brian - edamame (Official Video)",
+      "pulsebreaker",
+      "al1en_jump (Super Slowed)",
+      "PSYCHO FUNK",
+      "Broken Flow - VACUUM (prod. NXM1NAL)",
+      "X-SLIDE (Ultra Slowed)",
+      "Alone",
+      "Nightmare",
+      "Dança Dança Brasilia (Slowed)",
+      "Manasha (Over Slowed)",
+      "SKIN",
+      "CASSTA",
+      "ORQUESTRA MALDITA (FUNK BR) (TRASHXRL & MC DELUX)",
+      "MEET Basterds (Slowed + Reverb)",
+      "Jake Hill - By The Sword (prod. DR.F)",
+      "Montagem Mysterious Game (Super Slowed)",
+      "BLADES OF CHAOS",
+      "creux",
+      "Love Game",
+      "hypnotic (super slowed)",
+      "Suave Lee - BEYOND THE GRAVE",
+      "FUNK SIGILO (SUPER SLOWED)",
+      "XXIII - BURN NOTICE (prod. NeTuH)",
+      "JUST DANCE",
+      "ZWE1HVNDXR, yatashigang - LOVELY BASTARDS",
+      "Grim Reaper",
+      "bitkrush!",
+      "MISFIT",
+      "✻H+3+ЯД✻7luCJIo0T6... (second drop + super slowed)",
+      "Confess Your Love",
+      "SPACE! (Super Slowed)",
+      "Cannonball (feat. Don Toliver)",
+      "NITE - SLOWED",
+      "Override",
+      "MONTAGEM ALQUIMIA (SLOWED)",
+      "Apathetic (Ultra Slowed)",
+      "NITE II (Slowed)",
+      "Breathe Hoodtrap (Extended)",
+      "Montagem Mysterious Game (Slowed)",
+      "Raya (Slowed)",
+      "Headlock (Hoodtrap)",
+      "MONTAGEM TENTANA - Ultra Slowed",
+      "Bate Forte e Dança",
+      "SLIDE DA ESPECTRAL",
+      "SLAY!",
+      "MOLOTOV",
+      "SKORN",
+      "PRIMAL",
+      "light (slowed & reverb)",
+      "＂OLD GENESIS＂ ( Prod Lemuel J. Sianipar )",
+      "take it from the starz (Slowed & reverb)",
+      "TENTANA TEKK - Ultra Slowed",
+      "dance with me",
+      "Eternxlkz - SLAY! (Official Audio)",
+      "bouncin",
+      "DYSTOPIA",
+      "Fuera Del Planeta (Viral Instrumental)",
+      "power - slowed",
+      "NILXRO - ESPACO SECRETO (Super Slowed) ｜ viral version",
+      "Game over",
+      "bulbman - egyptian swag extended version by. GLOCKXXINIA",
+      "PRIME RADAHN",
+      "Consider",
+      "Destroy it All ⧸ YUJI - Slowed",
+      "MILITARY (Slowed)"
+    ]
+  },
+  {
+    "id": 9,
+    "code": "DISC 09",
+    "title": "Unga Boomga — Vol. 4",
+    "subtitle": "Burned MP3 CD • 55 Tracks",
+    "isRetail": false,
+    "artUrl": "./maxell.jpg",
+    "playlistUrl": "https://music.youtube.com/playlist?list=PLOmp4tb1eywquk5pjKQmDMgFiiFah3kec",
+    "tracks": [
+      "Ablaze",
+      "FUNK MANDALA (SLOWED)",
+      "ANNIHILATE",
+      "GOGGINS EFFECT",
+      "Final Battle",
+      "MONTAGEM INVASÃO (Slowed)",
+      "Montagem Mysterious Game",
+      "take it from the starz",
+      "Break The Pattern ( - Slowed & Reverb",
+      "CONQUEROR",
+      "heavenly audio (guitar version)",
+      "GROK - Super Slowed",
+      "DOORS LIGHT FUNK (SLOWED)",
+      "Gigachad Phonk (Bass Boosted)",
+      "knight",
+      "krushed!",
+      "light",
+      "ACIDO (Alt Ver, Super Slowed)",
+      "MENTE MÁ (Ultra Slowed)",
+      "RITMO DE VERAO (SLOWED)",
+      "listeria",
+      "power",
+      "LOOK AT ME!",
+      "Fractured Parade",
+      "LINDO DANÇA - Slowed",
+      "Welcome To My Crib - Hoodtrap (Slowed)",
+      "AKAI (Slowed)",
+      "Hollaback Girl",
+      "FLYMODE",
+      "LITSAR PEKLA",
+      "Die",
+      "torture",
+      "DNA",
+      "DODGE THIS",
+      "detachment",
+      "TITANOLE (SLOWED)",
+      "Wels - NXSTY BLOOD",
+      "LOUCURA LETAL",
+      "Want To Love (Just Slowed Raw)",
+      "Most wanted - Towa (old version)",
+      "9mm",
+      "Life Force (Virtuoso Version)",
+      "DIA DELÍCIA (Slowed)",
+      "they think you are a monster, prove them right",
+      "DOPE SHIT",
+      "PYTHON FUNK",
+      "JOGO DE TOLOS",
+      "lexus",
+      "freaked out (RJ Pasin remix)",
+      "DIA DELÍCIA",
+      "CLIMA LINDO (SLOWED)",
+      "Nakama, Mc Staff - MENTE MÁ",
+      "CLIMA LINDO",
+      "Nightcrawler (Instrumental Slowed)",
+      "Nightcrawler (Slowed)"
+    ]
+  },
+  {
+    "id": 10,
+    "code": "DISC 10",
+    "title": "Just Music I Listen To... — Vol. 1",
+    "subtitle": "Burned MP3 CD • 93 Tracks",
+    "isRetail": false,
+    "artUrl": "./maxell.jpg",
+    "playlistUrl": "https://music.youtube.com/playlist?list=PLOmp4tb1eywotXDq90o-gxtPH3hS5cOe9",
+    "tracks": [
+      "Exodus - KÉDALOS, MCTR, Lenny, STRADEUS, Yaguru, SL!DE, COSMIC, skypierr, hélix & THROVN",
+      "ANTHEM (ft. Lukrative, hyperforms, COSMIC, NightGrind, noax, SYNC, vowl., & NOIXES)",
+      "TITANS - delp, COSTE, HYPEER, KILLSIREN, hxlfghoul, YABØII, Dieom & AENEAS",
+      "DELP & COSTE - CONCUSSION",
+      "Awolnation - Sail (Unlimited Gravity Dubstep Remix)",
+      "Spxtre - ASHIGARU w⧸YABØII",
+      "YABØII - RUSH",
+      "Delp & YABØII - Session",
+      "Sickick - Infected (Barren Gates Remix)",
+      "MISOGI - UGLY",
+      "YABØII - DOWN EASY",
+      "Wizard - Bamboo",
+      "YABØII - Poison",
+      "YABØII - Perseus",
+      "Headphone Activist - Cloud City",
+      "YABØII - Zeus",
+      "hatejacaro - ARES",
+      "AENEAS - HOLY",
+      "AENEAS - Burn",
+      "Hamdi - Discovery (JADŪ193)",
+      "Wizard - Leaving (feat. Dane Jurous)",
+      "Dieom & GRIM - SUFFER",
+      "Jack Ü - Mind (feat. Kai) (Ekali & Gravez Remix)",
+      "MUNEYLXRD - AFTER FOREVER",
+      "MISOGI - BEOWULF (w⧸ Oshi)",
+      "San Holo - We Rise",
+      "RemK - Breakwater",
+      "Apashe - Majesty (Instrumental)",
+      "L3NNY - HEAT",
+      "MISOGI - BLACKHEART (FT. FIFTY GRAND)",
+      "skypierr - KING",
+      "Josh A - No Chill (Ft. MrTLexify)",
+      "JAEGER - Overdue",
+      "Sex Whales & Fraxo - Dead To Me (feat. Lox Chatterbox)",
+      "Cavalier - Blood (feat. FIFTY GRAND)",
+      "YABØII - SURVIVAL",
+      "Pacific Patterns - Blossom",
+      "Wizard - Hell",
+      "Matstubs - War (Bass Boosted)",
+      "COSMIC - Lost Path",
+      "Cavalier - Storm (feat. Gravez)",
+      "TheUnder - Fire",
+      "mark veins - Neo Tokyo (w⧸ skypierr)",
+      "REALM - No Sweat",
+      "DELP x COSTE - Element",
+      "Major Lazer - Be Together (Kai Maddox Remix)",
+      "skypierr - FLAME",
+      "COSMIC - Crown",
+      "VVSV - Stars",
+      "Matbow - Caelum",
+      "Element - Resurrection",
+      "AKAY - royalty",
+      "AJORIES - Lost World",
+      "EXTREME BASS TEST!!!!",
+      "MCTR - BLACK",
+      "BEATSMASH - Kālī",
+      "HANZO 陰陽 - GREEN FIELDS II (w⧸ BLVCK & hxlfghoul)",
+      "$ayonara. - b l a c k.",
+      "that boi retrol - Face It",
+      "MCTR & brothel. - The Fall",
+      "Fabian Mazur & Snavs - Arena [Trap]",
+      "Delp - Mischief",
+      "skypierr - MORTAL",
+      "LBLVNC - Dark Angels",
+      "RISING SUN",
+      "JAEGER - Betrayed",
+      "Sub Urban - Cradles ｜ Pop ｜ NCS - Copyright Free Music",
+      "Dimebag - Adapt",
+      "sumthin sumthin - Take Me Home",
+      "BLVC SVND x OSHI - BOOMIN",
+      "skypierr - DIVINE POWER",
+      "Major Lazer - Roll The Bass (JAEGER Remix)",
+      "skypierr - Legend",
+      "Hensonn - Sahara (Slowed)",
+      "Wizard & COSMIC - Hurt",
+      "SHARDEM x PULSE x SOJHI - RITUAL",
+      "Calli Boom - Axiom",
+      "SLIGHT - RELEASE",
+      "STRADEUS - Akimbo",
+      "TENVEY - Dreamz",
+      "MCTR - Day X",
+      "YABØII & COSTE - LEGION",
+      "BEATSMASH - Árēs",
+      "Hippie Sabotage - Devil Eyes",
+      "Aywy. & EphRem - Adderall",
+      "JAMES WELLS - Surrender",
+      "STRADEUS - Illicit",
+      "MCTR - Shadows",
+      "Dank Frank - Melody Lives On",
+      "Dieom - VIOLENT",
+      "E.Y. - The Piano",
+      "Jetta - I'd Love to Change the World (Matstubs Remix)",
+      "MOISTRUS - Divide"
+    ]
+  },
+  {
+    "id": 11,
+    "code": "DISC 11",
+    "title": "Just Music I Listen To... — Vol. 2",
+    "subtitle": "Burned MP3 CD • 63 Tracks",
+    "isRetail": false,
+    "artUrl": "./maxell.jpg",
+    "playlistUrl": "https://music.youtube.com/playlist?list=PLOmp4tb1eywotXDq90o-gxtPH3hS5cOe9",
+    "tracks": [
+      "EXTREME 999.999.999.999.999 hz .999999.999 WATT hard SUBWOOFER BASS TEST (SUBWOOFER HEA)",
+      "MCTR - KILLSHOT",
+      "downtime - selfish",
+      "Nètis x TøxikLive - Amanda",
+      "NOIXES - Destiny",
+      "WHITE KATANA - ETERNAL (w⧸ ANUBIS-XIII)",
+      "Wizard - Spartans",
+      "WHITE KATANA - SORCERER",
+      "BLVK SHEEP - Insanity",
+      "Kaaris - Chargé (Alexander Lewis Trombone Flip)",
+      "Skan & Krale - No Glory (LBLVNC Remix)",
+      "NVTE - BRUTAL",
+      "vowl. - pressure",
+      "LBLVNC & BULWRD - Ascension",
+      "SLIGHT - tsunami",
+      "MISOGI - Crybaby (Moistrus Remix)",
+      "Calli Boom - Battle Scarred",
+      "HOPEX - Conquer",
+      "NOIXES - Rage",
+      "Calli Boom - Lonely",
+      "Pembers - Babylon",
+      "LOW SUBWOOFER BASS DROP TEST!!!",
+      "MCTR - Matrix",
+      "LOUD - Feels",
+      "gryfon - MAD",
+      "rusagi - pursuit 'em",
+      "REALM - Forgive",
+      "noax - Invasion",
+      "LSL - Ｂ Ｌ Ｏ Ｏ Ｄ Ｂ Ａ Ｔ Ｈ",
+      "LBLVNC & BULWRD - Da Vinci",
+      "Matbow - Slaughter",
+      "LOUD - Thoughts",
+      "STRADEUS - ODIN",
+      "JAEGER - Greed",
+      "EBEN - Ruthless",
+      "COSMIC - Beat Slayer",
+      "Atlantic Haze - Red",
+      "Calli Boom - Pulse",
+      "Spxtre x Grxy - Pendulum",
+      "YOOKiE - SUBS",
+      "NOIXES - patient",
+      "DVNEK - MEXICO 💃",
+      "Calli Boom - Control",
+      "SYNC - Random 2.",
+      "major & krs - milestone",
+      "Skeler - NRG",
+      "MCTR - WARZONE",
+      "GLOKKBOY - KRÄSEN (OSIAS REMIX)",
+      "Take⧸Five - Damascus",
+      "noax - The End",
+      "VRCTIC - METALICE",
+      "KÉDALOS x VRCTIC - SANCATA",
+      "Blame Connor - Calamity",
+      "E.Y. - Used To Be",
+      "So Dope - Waiting 4 U",
+      "ef - HIGHTIER BEAST.",
+      "Two Feet - Go F＊ck Yourself",
+      "Øfdream  -  Thelema (Skeler Remix) (THE PLAYGROUND RECORDS)",
+      "théos - falling down",
+      "SLIGHT - tokyo",
+      "alasen - abyss",
+      "borealis - CARNIVAL",
+      "broke. - THE FOGHORN"
+    ]
+  },
+  {
+    "id": 12,
+    "code": "DISC 12",
+    "title": "Hell Yeah — Vol. 1",
+    "subtitle": "Burned MP3 CD • 37 Tracks",
+    "isRetail": false,
+    "artUrl": "./maxell.jpg",
+    "playlistUrl": "https://music.youtube.com/playlist?list=PLOmp4tb1eywp1Q9CIEZ9z2-ddqFGwNc68",
+    "tracks": [
+      "SAMURAI 【 侍 】 ☯ Japanese Trap & Bass Type Beat ☯ Trapanese Hip Hop Mix",
+      "Dark Bass Techno ⧸ Minimal ⧸ Tech Noir mix 'KTULU'",
+      "Wanderer - Best New Electro House & Future Bass Music mixed by Ephixa 2016",
+      "Mick Gordon - The Only Thing They Fear Is You (slowed)",
+      "The Only Thing They Fear Is You (Reborn Mix) - DOOM Eternal Remix",
+      "The Only Thing They Fear Is You (Old & New Combo Remix)",
+      "White Eyes - Rites of Abaddon",
+      "Lych & White Eyes - Woe",
+      "XheckX - The Ruins Of The Exanimate",
+      "Substep Infrabass (ft. Bloodfusion) - The Unknowns of the Darkest Lights [50k Subscribers Exclusive]",
+      "VISH_AZ - Memories [Exclusive]",
+      "Groovaholik & Mandragora - Wild Wild West (Official Video)",
+      "Araphel - A Shrine For The Darkness",
+      "Elände - They Speak of the Darkness",
+      "Havel - The Dark Soul",
+      "White Eyes & SKRUSH - Judgement",
+      "KROWW - The King in Yellow",
+      "White Eyes - Omega",
+      "Havel - Nightmare",
+      "Mute - Monotheism",
+      "SKRUSH - Doomsday [Exclusive]",
+      "Black Serpens - Dies Irae",
+      "Poseidon - Ixion",
+      "Havel - Isolation",
+      "Tame Impala - New Person, Same Old Mistakes (Original Instrumental)",
+      "Code： Pandorum - Chosen (Venom Remix) [WARNING： HEAVY]",
+      "Osiriz - The Prince",
+      "Havel - Fate",
+      "Karnal - King",
+      "SUBSTEP INFRABASS - Brutbientum",
+      "Havel - Mourn",
+      "Karnal - Marduk",
+      "White Eyes & SCARRED - Terror",
+      "Havel - Sanctum",
+      "White Eyes & Desiccated Aberration - Overseer",
+      "CATACLYSM",
+      "Conjure"
+    ]
+  },
+  {
+    "id": 13,
+    "code": "DISC 13",
+    "title": "Hell Yeah — Vol. 2",
+    "subtitle": "Burned MP3 CD • 71 Tracks",
+    "isRetail": false,
+    "artUrl": "./maxell.jpg",
+    "playlistUrl": "https://music.youtube.com/playlist?list=PLOmp4tb1eywp1Q9CIEZ9z2-ddqFGwNc68",
+    "tracks": [
+      "Evilwave - Misery",
+      "PlvgueDxctxr - DRVUGR",
+      "White Eyes - Atonement",
+      "The Ragnarok",
+      "Pyramid",
+      "Dyroth - Vanguard (Elande Remix)",
+      "Facesplit - Marv (Code： Pandorum Remix)",
+      "White Eyes & Automatik - Plagues",
+      "[Deathstep] Kroww X White Eyes - The Sacrifice",
+      "Code： Pandorum - Exit Humanity [DEATH BOOSTED]",
+      "White Eyes & Absolute Zero - Redeemer",
+      "White Eyes & Pyre - Gehenna",
+      "Code： Pandorum - Covenant",
+      "Black Tiger Sex Machine & Apashe - Replicants",
+      "[Deathstep] Dyroth - Destruction VIP",
+      "Mantis - Anubis",
+      "Code： Pandorum - Chosen (Deindividuation Remix) [Exclusive]",
+      "Descent",
+      "Excalibur - Desolation",
+      "Creepa - Sorrow (Havel & Automatik VIP)",
+      "02. Cultist Base",
+      "RipRaw & Ohmie - Sudden Collapse",
+      "Moldae - All I Want",
+      "Ritual",
+      "Code： Pandorum - Event Horizon (White Eyes Remix) [Premiere]",
+      "[Deathstep] Pancode - Revelation of John the Divine",
+      "Code： Pandorum - The Neon Demon",
+      "Dead Cowboy - Mortal Soul",
+      "SWARM - Consumed",
+      "KROWW - Memento Mori",
+      "Teminite - Beastmode",
+      "Judgement Day",
+      "White Eyes - Cathedral",
+      "Evilwave - Calm Down",
+      "KROWW - HYSTERIA",
+      "Unksra - Burn The World [Exclusive]",
+      "The Fallen Ft MagMag",
+      "Elände - Oblivion",
+      "Sennago - Hungry Ghost",
+      "SONG SIX",
+      "Evilwave & Antima - Tinnitus",
+      "Chosen",
+      "Izzamuzzic, Julien Marchal - Shootout (official audio)",
+      "Code： Pandorum - Exit Humanity",
+      "Summon The Beast - Beast",
+      "W!CKED & White Eyes - Salvation",
+      "SYN - 28 Days Later",
+      "Code： Pandorum - Remember Me",
+      "BLOODSET & Through The Angel's Eyes - Requiem",
+      "EPIC ROCK ｜ ''Men in the Mask'' by All Good Things (Super Rock)",
+      "Frequensphere - Heaven",
+      "Havel x Biwee x Marofame - Monomania",
+      "Oh, Andron & Diskirz - Ragnarok",
+      "Eminem - Venom",
+      "Evilwave & Teminite - Mutant (ft. Prey For Me)",
+      "Mord Mora (Pancode) - Infected",
+      "The Miracle",
+      "Havel - Dusk of Humanity",
+      "SPLIT PERSONALITY",
+      "Moth - Nexion",
+      "Thestatic - Inhuman Solitude",
+      "Osiriz - Birth of a God [Exclusive]",
+      "Kai Wachi - Better Off Alone (ft. RUNN)",
+      "White Eyes & Dyroth - Belle Sanctum 🚨",
+      "KROWW - The Judge",
+      "KROWW - ❖ ⋗Ξ∫†Ꝛ∐Ꜿ†¡⟐₪ ❖",
+      "Kozmoz - Overload",
+      "The Canal",
+      "White Eyes - Seraphim",
+      "Black Tongue - Waste (Dead Cowboy Bootleg) [REVIVAL WEEK #5]",
+      "DIARY OF A MANIAC"
+    ]
+  },
+  {
+    "id": 14,
+    "code": "DISC 14",
+    "title": "Hell Yeah — Vol. 3",
+    "subtitle": "Burned MP3 CD • 85 Tracks",
+    "isRetail": false,
+    "artUrl": "./maxell.jpg",
+    "playlistUrl": "https://music.youtube.com/playlist?list=PLOmp4tb1eywp1Q9CIEZ9z2-ddqFGwNc68",
+    "tracks": [
+      "Eminem - Till I Collapse [HD]",
+      "swarm - On the Edge",
+      "POSSESSOR",
+      "Araf - Adversity",
+      "Elände - Hymn Concerning The Void",
+      "Fury",
+      "EPIC ROCK ｜ ''For The Glory'' by All Good Things (2017)",
+      "Havel & Neurektomie - Unhallowed",
+      "Let Us Pray",
+      "Code： Pandorum - God",
+      "KROWW - The Crucifixion [Exclusive]",
+      "CRIMSON BURNING",
+      "White Eyes - Perdition",
+      "Pancode - Suffer",
+      "Code： Pandorum - God Complex (Kretan Remix)",
+      "Code： Pandorum - Illusion",
+      "Code： Pandorum - The Lovecraftian Horrors Inspired MASTERCLASS",
+      "Mantis - Body Bag (2025 'Bodied' VIP)",
+      "Dyroth - Existence",
+      "KROWW - Oniwa",
+      "Renaissance",
+      "EPIC ROCK ｜ ''Sleepwalk'' by The Spiritual Machines",
+      "Pancode - Balarok",
+      "Unksra - Excalibur",
+      "swarm. - Salvation",
+      "Awakening",
+      "UNKSRA - Odyssey Of Martyrs",
+      "AL7AR & Constrict - Indestructible Reptile [SCP-682 Fan Song]",
+      "DEVILIRIUM x Constrict x Dead Cowboy - More Majorum",
+      "JNATHYN - Dioma (Original Mix)",
+      "[Deathstep] Pancode - After God",
+      "White Eyes - Scourge",
+      "Code： Pandorum - Chosen (Havel Remix)",
+      "Sullivan King — Watch The Crown Fall",
+      "EPIC ROCK ｜ ''Get Up'' by All Good Things (Extreme Music)",
+      "Diskirz - Battle Of Gods",
+      "EPIC ROCK ｜ ''Insanity'' by Extreme Music",
+      "White Eyes - Legion [FREE DOWNLOAD]",
+      "Anthem Of The Lonely",
+      "INZO - Overthinker",
+      "Pancode - Machine Blood",
+      "[Deathstep] Infradist & White Eyes - The Fire Keeper",
+      "UNKSRA - Blue-Eyed Demon",
+      "KROWW - ANKH",
+      "Leviathan",
+      "Captain Panic! - Dead Space (Synoid Remix)",
+      "DEFECT - Parasite",
+      "SONNE (in style of DOOM)",
+      "Outcast (Instrumental)",
+      "Diskirz - Vendetta",
+      "Apothecide - minhak",
+      "Moth - Meet Your Maker",
+      "Evanescence - Bring Me To Life (Teminite & The Arcturians Remix)",
+      "Code： Pandorum - Lose Your Mind",
+      "KROWW - EVIL NEVER DIES",
+      "Mantis X BVLVNCE - Thoughts And Prayers",
+      "Syn - Synners",
+      "Dead Cowboy - Lilith",
+      "DEFECT - PAIN",
+      "KRAKEN - N3ÜRØ [DUBSTEP]",
+      "EPIC ROCK ｜ ''What Have I Become'' by All Good Things",
+      "KROWW - War Machine",
+      "UNKSRA - Nosferatu",
+      "RipRaw & Ohmie - The Damned",
+      "Tokzick - The Devil's Sunrise",
+      "Soulless Cvlt - Shinigami",
+      "The Banshee Chapter",
+      "The DeadBorn",
+      "Karbonite - Suffer Evermore (Abhorrent VIP) [Exclusive]",
+      "thestatic - Decompression [Exclusive]",
+      "SKRUSH - The Shadow King",
+      "Calvaire",
+      "KROWW - UMBRA (Echoes From The Abyss VIP)",
+      "Sucker for Pain (with Logic, Ty Dolla $ign & X Ambassadors)",
+      "KROWW - Oh My Gore",
+      "thestatic — Decompression [Deathstep]",
+      "Code： Pandorum - Forgive Us",
+      "Forgive Us",
+      "EPIC ROCK ｜ ''I'm Dangerous'' by The Everlove",
+      "Aero Chord - Surface [Bass Boosted]",
+      "Trippie Redd – Miss The Rage Feat. Playboi Carti (Instrumental)",
+      "Araf - Cursed",
+      "Through The Angel's Eye - Outcast [Exclusive]",
+      "Darkzterrøid & Deafwave - Satan Complex [Hydraulic x Unknown Future]",
+      "UNKSRA - Haemorrhagia"
+    ]
+  },
+  {
+    "id": 15,
+    "code": "DISC 15",
+    "title": "Hell Yeah — Vol. 4",
+    "subtitle": "Burned MP3 CD • 102 Tracks",
+    "isRetail": false,
+    "artUrl": "./maxell.jpg",
+    "playlistUrl": "https://music.youtube.com/playlist?list=PLOmp4tb1eywp1Q9CIEZ9z2-ddqFGwNc68",
+    "tracks": [
+      "The Plot In You - FEEL NOTHING (Official Music Video)",
+      "Sacrament",
+      "Dirty Religion - Retribution",
+      "KROWW - Fear Me [Premiere]",
+      "Time Has Run Out",
+      "MARAUDA - Casket (White Eyes Bootleg)",
+      "Sennago - Forgotten Tears [Exclusive]",
+      "KROWW - Biomechanik",
+      "JACKNIFE - Code Black",
+      "Code： Pandorum x Evilwave - Nyctophobia",
+      "BLOODSET - Ritual",
+      "Code： Pandorum - Sacrament",
+      "KROWW - ENDOKORE",
+      "The Organ's Breath",
+      "Pancode - Violence",
+      "EPIC ROCK ｜ ''Black Sky'' by WAR＊HALL",
+      "Remember The Name (Official Video) - Fort Minor [4K]",
+      "VALHALLA CALLING by Miracle Of Sound ft. Peyton Parrish - OFFICIAL VIDEO",
+      "White Eyes - Bloodbearer",
+      "PIKL3R & Padifer - Stay Here",
+      "Kranary - Acedia",
+      "Eminem - Lose Yourself [HD]",
+      "UNKSRA - Desmodus",
+      "Diskirz - Unstoppable (ft Majin MC) [DEATH BOOSTED]",
+      "Disclosure - Help Me Lose My Mind (Mazde Remix)",
+      "EPIC ROCK ｜ ''Decimator'' by All Good Things (2017)",
+      "eXecrius - Lord of Blasphemy",
+      "Sennago - Awareness",
+      "Satren - Promises (Carthus Remix)",
+      "The Living Proof - End of Days",
+      "The Living Proof - Control",
+      "Alter Ego - Voices Within",
+      "Karbonite - Mayflower (Abhorrent VIP) [Exclusive]",
+      "KROWW - Call of the Void",
+      "DEFECT - Decimate",
+      "Astera - Basilisk (Bass Boosted)",
+      "Moth - Aokigahara",
+      "Busta Rhymes  - Touch It (Deep Remix) [Slowed & BassBoosted]",
+      "EPIC ROCK ｜ ''Rise'' by Valley Of Wolves",
+      "Dubloadz - Dead Inside",
+      "Blues Saraceno - The Devil You Know",
+      "[Deathstep] Dyroth - Destruction",
+      "6 SENZ - Function",
+      "UNKSRA - Jormungand",
+      "UNKSRA - Midnight Quest",
+      "Fast & Furious： Hobbs & Shaw Soundtrack ｜ Apashe - Lacrimosa",
+      "KROWW - Divine Power",
+      "EPIC ROCK ｜ ''Born Ready'' by All Good Things (2017)",
+      "Kumarion - Want It (Bass Boosted)",
+      "UNKSRA - The Wraith",
+      "The Living Proof - Beautiful Madness",
+      "Haunt (WHITE Remix)",
+      "Monster In Me",
+      "Sennago - Mali Spiritus",
+      "The Dark Ages (in style of Mick Gordon)",
+      "grandson - Stick Up",
+      "50 Cent - In Da Club (MTV Version)",
+      "UNKSRA - Ravenous",
+      "EPIC ROCK ｜ ＂We Are Legends'' by Valley Of Wolves",
+      "UNKSRA - The Obscurus [Tribute to The Wizarding World]",
+      "Vimori - Identity",
+      "PIKL3R - 3AM, voces en mi cabeza",
+      "Unksra - Malefictum",
+      "Majoras Drep - Armageddon",
+      "Moth - In Dissent",
+      "Diskirz - Corrupt Souls",
+      "Pancode - Godless",
+      "Skyheaven - Bring Me Your Sin",
+      "SYN - Psycho",
+      "Nine Lashes - Never Back Down",
+      "UNKSRA - Morrigan",
+      "UNKSRA - Carpe Noctem",
+      "Veinweaver - Abysswalker [Exclusive]",
+      "THE DOOMSLAYER",
+      "Tulpa - Altered",
+      "EPIC ROCK ｜ ''Rise Up'' by Extreme Music",
+      "Dirtyphonics & Sullivan King - Hammer",
+      "Code： Pandorum & Lord Swan3x - Deathstep Tutorial",
+      "PIKL3R - Don't Let This World Die In Darkness",
+      "Dust - Deliverance",
+      "Code： Pandorum - Brotherhood",
+      "[Deathstep] Wretched - The End",
+      "EPIC BADASS MUSIC ＂Adam Jensen - The Hunter＂",
+      "Halogen - U Got That [EPIC METAL COVER] (Little V)",
+      "NEFFEX - Fight Back [Official Video] No.37",
+      "swarm. - Kreophagia",
+      "Bass To The Dome",
+      "EPIC ROCK ｜ ''Bad'' by Royal Deluxe",
+      "Sennago & Skyheaven - Imentet",
+      "Prof - Andre The Giant (Official Video)",
+      "Kai Wachi - All My Demons",
+      "EPIC ROCK ｜ ''Eye of the Storm'' by WattWhite",
+      "INHUMAN - PROPHET",
+      "Concavenator x Ruined  - Perverted Doxology",
+      "All My Demons",
+      "Linear",
+      "KROWW - Disasterpiece",
+      "Dust - Language of the Sword [Hydraulic Damnation x Community Mix Promotions x Dubstep Night]",
+      "Carol of The Bells - Epic Version",
+      "Kurupt FM - Heart Monitor Riddim (Grime Allstars Remix)",
+      "Devouring Annihilation - Seraph of Death",
+      "Psyfiend - Lullaby"
+    ]
+  },
+  {
+    "id": 16,
+    "code": "DISC 16",
+    "title": "Hell Yeah — Vol. 5",
+    "subtitle": "Burned MP3 CD • 64 Tracks",
+    "isRetail": false,
+    "artUrl": "./maxell.jpg",
+    "playlistUrl": "https://music.youtube.com/playlist?list=PLOmp4tb1eywp1Q9CIEZ9z2-ddqFGwNc68",
+    "tracks": [
+      "Lil Jon & The East Side Boyz - What U Gon' Do (Brevis & Onur Ormen Remix)",
+      "Virtual Riot - Purple Dragons (Dragons VIP)",
+      "Dope",
+      "Dogma (Instrumental)",
+      "PANDORUM",
+      "IOBAGG X MO X BAZOOKA - BE CU MINE",
+      "Hairitage - Powerful",
+      "Summoning",
+      "Moon Over the Castle (from GRAN TURISMO 7)",
+      "Shady Intentions (REAPER Remix)",
+      "Yamanooto",
+      "Kai Wachi - DEMIGOD",
+      "BLOODSET - Jigsaw",
+      "Demeter - Dope",
+      "Covener - Alienation",
+      "Sennago - Defiance",
+      "Metallica - Enter Sandman (The Living Proof Remix)",
+      "Ship Wrek & Zookeepers - Ark ｜ Future Bass ｜ NCS - Copyright Free Music",
+      "Finesse (feat. Koncept P, willnosleep & avonosleep)",
+      "WYR GEMI - Black Samurai",
+      "REAPER & Awoltalk - Hysteria",
+      "Dirty Religion - Apathetic",
+      "Blvk Sheep & Felmax - Dual Blade ｜ Subsidia",
+      "DVBBS - Pyramids (Fatho Remix)",
+      "Deathpact - BLOODLINE (Official Audio)",
+      "Araf - Requiem",
+      "Death Is No More (Slowed) (Official Visualizer)",
+      "FEAR",
+      "Prof - No feat. Cashinova (Official Video)",
+      "Particularly",
+      "Kai Wachi - The Keeper (ft. Macntaj)",
+      "Lppassy96 - New Moon",
+      "Through The Angel's Eye - Salvation [Exclusive]",
+      "IOBAGG - DUPA GEAMANDURA",
+      "Lil Jon ft. Three 6 Mafia - Act a Fool (Anbroski Remix)",
+      "Araphel - Vessel of the Cosmic Eye",
+      "Хаски - Иуда",
+      "Hyper - Spoiler Metal Cover (Cyberpunk 2077 Goes Metal)",
+      "SAINt JHN - ＂Roses＂ Imanbek Remix (Official Audio)",
+      "Ром и Смерть. Доктор Ливси Идёт под Фонк!!!!",
+      "TrippyThaKid -  LEEDLE LEEDLE LEE (Official Music Video)",
+      "TrippyThaKid - I LOWKEY LUV HOWARD JOHNSON (PROD. ZCR & Swvde) (Official Music Video)",
+      "Jidenna - Long Live the Chief (Official Video)",
+      "Warframe ｜ We All Lift Together",
+      "MARAUDER",
+      "SUKI - takko",
+      "Override (Slowed + Reverb)",
+      "Satren - No More",
+      "Deathpact - 0506+056 (Official Audio)",
+      "Doomsday",
+      "QroH & Necrodemie - Affliction Of Mind (QroH VIP)",
+      "MIDNIGHT",
+      "Japanese Stutter ｜ Suave Lee (Original Creator) (OUT NOW ON SPOTIFY ETC)",
+      "Wels - NXSTY BLOOD (Slowed + Reverb)",
+      "Aces",
+      "Lobster",
+      "Stephen Baysted - Quies Ante Tempestatem (Project CARS Soundtrack)",
+      "Гио ПиКа - Едет Катится",
+      "KSLV - Disaster",
+      "Ryan Jones - Japanika",
+      "Smoke - Cowbell cult (No words)",
+      "AirplaneMode",
+      "FLESH. by Fnatylqrd",
+      "Harsh x HaXim - Fallen (Harsh VIP)"
+    ]
+  }
+]
   </script>
 
   <script>
-    /**
-     * ============================================================================
-     *  LOAD DISCS SAFELY FROM JSON STORE
-     * ============================================================================
-     */
-    const DISCS = JSON.parse(document.getElementById("disc-data").textContent);
-
-    function buildRetailDiscFallback(disc) {
-      return `
-        <div class="w-full h-full flex flex-col items-center justify-between py-4 px-5 text-center select-none">
-          <div class="text-[8px] font-mono tracking-widest uppercase text-amber-200/80 font-semibold">
-            2 VIDEOCLIPURI
-          </div>
-          <div class="w-full px-1 mt-12">
-            <div class="text-[12px] font-extrabold tracking-tight text-amber-50 drop-shadow leading-tight truncate">
-              DJ SEBI
-            </div>
-            <div class="text-[8.5px] italic text-amber-200/90 truncate mt-0.5">
-              Locul tau in inima mea
-            </div>
-          </div>
-        </div>
-      `;
+    let DISCS = [];
+    try {
+      DISCS = JSON.parse(document.getElementById("disc-data").textContent);
+    } catch (e) {
+      console.error("Failed to parse disc JSON:", e);
     }
 
-    /**
-     * ============================================================================
-     *  APPLICATION STATE & DOM REFERENCES
-     * ============================================================================
-     */
     let activeIndex = 0;
-    let selectedTrackKey = null;
     let searchQuery = "";
-    let pendingCustomArtDataUrl = null;
+    let lastGeneratedDataUrl = "";
+    const imageLoadCache = {};
 
-    const appShell = document.getElementById("appShell");
-    const portraitCarouselMount = document.getElementById("portraitCarouselMount");
-    const carouselSection = document.getElementById("carouselSection");
-    const carouselStage = document.getElementById("carouselStage");
-    const discTabs = document.getElementById("discTabs");
-    const discCounterBadge = document.getElementById("discCounterBadge");
-    const activeDiscPill = document.getElementById("activeDiscPill");
-    const activeDiscStats = document.getElementById("activeDiscStats");
-    const activeDiscTitle = document.getElementById("activeDiscTitle");
-    const activeDiscSubtitle = document.getElementById("activeDiscSubtitle");
-    const activeDiscHeader = document.getElementById("activeDiscHeader");
-    const searchResultsHeader = document.getElementById("searchResultsHeader");
-    const searchCountText = document.getElementById("searchCountText");
-    const tracklistContainer = document.getElementById("tracklistContainer");
-    const searchInput = document.getElementById("searchInput");
+    function checkImageAvailability(url, onResolved) {
+      if (!url) return onResolved(false);
+      if (url.startsWith("data:")) return onResolved(true);
+      if (url in imageLoadCache) return onResolved(imageLoadCache[url]);
+      const probe = new Image();
+      probe.onload = () => { imageLoadCache[url] = true; onResolved(true); };
+      probe.onerror = () => { imageLoadCache[url] = false; onResolved(false); };
+      probe.src = url;
+    }
+
+    const stageEl = document.getElementById("carouselStage");
+    const tabsEl = document.getElementById("discTabs");
+    const counterEl = document.getElementById("sleeveCounter");
+    const badgeEl = document.getElementById("activeDiscBadge");
+    const titleEl = document.getElementById("activeDiscTitle");
+    const subtitleEl = document.getElementById("activeDiscSubtitle");
+    const playlistBtnEl = document.getElementById("openPlaylistBtn");
+    const trackContainerEl = document.getElementById("discTrackContainer");
+    const globalResultsEl = document.getElementById("globalSearchResults");
+    const searchInputEl = document.getElementById("searchInput");
     const clearSearchBtn = document.getElementById("clearSearchBtn");
-    const activePlaylistLink = document.getElementById("activePlaylistLink");
+    const toastEl = document.getElementById("toast");
 
-    /**
-     * Opens external YouTube / YouTube Music links reliably on both standalone
-     * mobile/desktop browsers and sandboxed mobile preview iframes.
-     */
+    function showToast(msg) {
+      toastEl.textContent = msg;
+      toastEl.classList.remove("opacity-0");
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => toastEl.classList.add("opacity-0"), 2300);
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+    }
+
+    function buildYtSearchUrl(trackName) {
+      return `https://music.youtube.com/search?q=${encodeURIComponent(trackName)}`;
+    }
+
     function openExternalLink(e, url) {
-      if (e) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-      if (!url || url === "#") return;
-
+      if (!url) return;
+      e.preventDefault();
+      e.stopPropagation();
       const win = window.open(url, "_blank", "noopener,noreferrer");
-      if (!win || win.closed || typeof win.closed === "undefined") {
-        try {
-          window.top.location.href = url;
-        } catch (err) {
-          window.location.href = url;
-        }
+      if (!win) {
+        try { window.top.location.href = url; } catch (_) { window.location.href = url; }
       }
     }
 
-    activePlaylistLink.addEventListener("click", (e) => {
-      openExternalLink(e, activePlaylistLink.href);
-    });
-
-    /**
-     * ============================================================================
-     *  RESPONSIVE ORIENTATION PLACEMENT (Portrait Stack vs. Landscape Split)
-     * ============================================================================
-     */
-    function syncOrientationLayout() {
-      const isLandscape = window.matchMedia("(orientation: landscape) and (max-height: 560px)").matches;
-      if (isLandscape) {
-        if (carouselSection.parentElement !== appShell) {
-          appShell.appendChild(carouselSection);
-        }
-      } else {
-        if (carouselSection.parentElement !== portraitCarouselMount) {
-          portraitCarouselMount.appendChild(carouselSection);
-        }
-      }
-      updateCarouselPositions();
-    }
-
-    window.addEventListener("resize", syncOrientationLayout);
-    window.addEventListener("orientationchange", syncOrientationLayout);
-
-    /**
-     * ============================================================================
-     *  INITIALIZE FROM URL PARAMETER (?disc=1..6)
-     * ============================================================================
-     */
-    function initFromURL() {
-      try {
-        const params = new URLSearchParams(window.location.search);
-        const discParam = parseInt(params.get("disc"), 10);
-        if (!isNaN(discParam) && discParam >= 1 && discParam <= DISCS.length) {
-          activeIndex = discParam - 1;
-        }
-      } catch (e) {
-        // Safe fallback
-      }
-    }
-
-    function syncURLParam() {
-      try {
-        const url = new URL(window.location.href);
-        url.searchParams.set("disc", String(activeIndex + 1));
-        window.history.replaceState({}, "", url.toString());
-      } catch (e) {
-        // Safe fallback
-      }
-    }
-
-    /**
-     * ============================================================================
-     *  BUILD & POSITION 3D COVERFLOW CAROUSEL
-     * ============================================================================
-     */
     function renderCarousel() {
-      carouselStage.innerHTML = "";
-      discTabs.innerHTML = "";
+      stageEl.innerHTML = "";
+      tabsEl.innerHTML = "";
+      const total = DISCS.length;
+      const isLandscape = window.innerWidth > window.innerHeight && window.innerHeight <= 540;
+      const baseSize = isLandscape ? 148 : 178;
 
       DISCS.forEach((disc, idx) => {
-        const totalTracks = disc.folders.reduce((sum, f) => sum + f.tracks.length, 0);
-        const slot = document.createElement("div");
-        slot.className = "disc-slot";
-        slot.dataset.index = String(idx);
-
-        let artworkLayer = "";
-        if (disc.isCustomGraphic) {
-          const hasPhoto = Boolean(disc.artUrl && disc.artUrl.trim().length > 0);
-          const bgStyle = hasPhoto
-            ? `style="background-image: url('${disc.artUrl.replace(/'/g, "\\'")}');"`
-            : "";
-          artworkLayer = `
-            <div class="disc-custom-photo" ${bgStyle}>
-              ${hasPhoto ? "" : buildRetailDiscFallback(disc)}
-            </div>
-          `;
-        } else {
-          artworkLayer = `
-            <div class="disc-label-art">
-              <div class="text-[8.5px] font-mono tracking-widest uppercase text-skoda-glow/90 font-bold">
-                MAXELL CD-R • 700MB
-              </div>
-              <div class="w-full px-2 mt-12">
-                <div class="text-[11px] font-bold text-white truncate drop-shadow">
-                  ${disc.title}
-                </div>
-                <div class="text-[9px] font-mono text-emerald-300/80 mt-0.5">
-                  ${disc.code} • ${totalTracks} MP3s
-                </div>
-              </div>
-            </div>
-          `;
-        }
-
-        slot.innerHTML = `
-          <div class="optical-disc">
-            <div class="disc-spin-layer w-full h-full relative">
-              ${artworkLayer}
-              <div class="disc-sheen"></div>
-            </div>
-            <div class="disc-hub">
-              <div class="disc-spindle"></div>
-            </div>
-          </div>
-        `;
-
-        slot.addEventListener("click", () => {
-          if (idx !== activeIndex) {
-            goToDisc(idx);
-          }
-        });
-
-        carouselStage.appendChild(slot);
-
+        // Quick pill tab
         const tab = document.createElement("button");
-        tab.className = "px-1.5 py-1 rounded-lg text-[10px] font-mono font-semibold transition";
-        tab.textContent = `CD ${idx + 1}`;
-        tab.addEventListener("click", () => goToDisc(idx));
-        discTabs.appendChild(tab);
-      });
+        tab.type = "button";
+        tab.textContent = `CD ${disc.id}`;
+        tab.className = idx === activeIndex
+          ? "px-2 py-1 rounded-lg text-[10px] font-mono font-bold bg-skoda-green text-white shadow-sm shrink-0 transition"
+          : "px-2 py-1 rounded-lg text-[10px] font-mono font-medium text-slate-400 hover:text-white shrink-0 transition";
+        tab.addEventListener("click", () => selectDisc(idx));
+        tabsEl.appendChild(tab);
 
-      updateCarouselPositions();
-    }
+        // Circular offset for smooth wrap-around
+        let diff = idx - activeIndex;
+        if (diff > total / 2) diff -= total;
+        if (diff < -total / 2) diff += total;
 
-    function updateCarouselPositions() {
-      const slots = carouselStage.querySelectorAll(".disc-slot");
-      const tabs = discTabs.querySelectorAll("button");
-      const isLandscape = window.matchMedia("(orientation: landscape) and (max-height: 560px)").matches;
-      const spreadPrimary = isLandscape ? 105 : 132;
-      const spreadSecondary = isLandscape ? 168 : 215;
+        const absDiff = Math.abs(diff);
+        if (absDiff > 2) return;
 
-      slots.forEach((slot, idx) => {
-        const offset = idx - activeIndex;
-        slot.classList.toggle("is-centered", offset === 0);
+        const item = document.createElement("div");
+        item.className = "cd-item flex items-center justify-center cursor-pointer";
+        const scale = diff === 0 ? 1 : absDiff === 1 ? 0.68 : 0.45;
+        const translateX = diff * (isLandscape ? 105 : 132);
+        const rotateY = diff * -26;
+        item.style.transform = `translateX(${translateX}px) scale(${scale}) rotateY(${rotateY}deg)`;
+        item.style.zIndex = 20 - absDiff;
+        item.style.opacity = diff === 0 ? "1" : absDiff === 1 ? "0.6" : "0.22";
 
-        if (offset === 0) {
-          slot.style.transform = "translate3d(0px, 0px, 40px) rotateY(0deg) scale(1)";
-          slot.style.opacity = "1";
-          slot.style.zIndex = "20";
-          slot.style.filter = "brightness(1.04)";
-        } else if (Math.abs(offset) === 1) {
-          const dir = offset > 0 ? 1 : -1;
-          slot.style.transform = `translate3d(${dir * spreadPrimary}px, 4px, -40px) rotateY(${dir * -40}deg) scale(0.75)`;
-          slot.style.opacity = "0.78";
-          slot.style.zIndex = "10";
-          slot.style.filter = "brightness(0.72)";
+        const discEl = document.createElement("div");
+        discEl.className = `cd-disc ${diff === 0 ? "active-glow" : ""}`;
+        discEl.style.width = `${baseSize}px`;
+        discEl.style.height = `${baseSize}px`;
+
+        if (disc.isRetail) {
+          const art = document.createElement("div");
+          art.className = "cd-art disc-custom-photo retail-fallback flex flex-col items-center justify-between py-3 px-4 text-center";
+          const fallbackMarkup = `
+            <span class="text-[8px] font-bold tracking-wider text-amber-100/90 uppercase drop-shadow">2 videoclipuri</span>
+            <div class="mt-auto mb-1">
+              <div class="text-xs font-black italic tracking-wide text-white drop-shadow">DJ SEBI</div>
+              <div class="text-[8px] italic text-amber-200/90">Locul tau in inima mea</div>
+            </div>
+          `;
+          art.innerHTML = fallbackMarkup;
+          checkImageAvailability(disc.artUrl, loaded => {
+            if (loaded) {
+              art.style.backgroundImage = `url("${disc.artUrl}")`;
+              art.innerHTML = "";
+            }
+          });
+          discEl.appendChild(art);
         } else {
-          const dir = offset > 0 ? 1 : -1;
-          slot.style.transform = `translate3d(${dir * spreadSecondary}px, 8px, -110px) rotateY(${dir * -54}deg) scale(0.56)`;
-          slot.style.opacity = "0.32";
-          slot.style.zIndex = "5";
-          slot.style.filter = "brightness(0.48)";
+          const art = document.createElement("div");
+          art.className = "cd-art disc-custom-photo";
+          discEl.appendChild(art);
+
+          const label = document.createElement("div");
+          label.className = "absolute inset-0 flex flex-col items-center justify-between py-3 px-3 text-center pointer-events-none z-20";
+          label.innerHTML = `
+            <span class="maxell-top-text text-[8px] font-mono tracking-widest text-skoda-glow/80 uppercase">MAXELL CD-R • 700MB</span>
+            <div class="mt-auto px-2.5 py-1 rounded-full max-w-[84%] transition">
+              <div class="text-[10px] font-bold text-white leading-tight truncate drop-shadow">${escapeHtml(disc.title)}</div>
+              <div class="text-[8px] font-mono text-skoda-glow mt-0.5 drop-shadow">${disc.code} • ${disc.tracks.length} MP3s</div>
+            </div>
+          `;
+          discEl.appendChild(label);
+
+          checkImageAvailability(disc.artUrl, loaded => {
+            if (loaded) {
+              art.style.backgroundImage = `url("${disc.artUrl}")`;
+              const topText = label.querySelector(".maxell-top-text");
+              if (topText) topText.classList.add("opacity-0");
+              const pill = label.querySelector("div.mt-auto");
+              if (pill) pill.classList.add("burned-label-pill");
+            }
+          });
         }
+
+        const sheen = document.createElement("div");
+        sheen.className = "cd-sheen";
+        const hub = document.createElement("div");
+        hub.className = "cd-hub";
+        discEl.appendChild(sheen);
+        discEl.appendChild(hub);
+
+        item.appendChild(discEl);
+        item.addEventListener("click", () => selectDisc(idx));
+        stageEl.appendChild(item);
       });
 
-      tabs.forEach((tab, idx) => {
-        if (idx === activeIndex) {
-          tab.className = "px-1.5 py-1 rounded-lg text-[10px] font-mono font-bold bg-skoda-green text-white shadow-sm transition";
-        } else {
-          tab.className = "px-1.5 py-1 rounded-lg text-[10px] font-mono font-medium text-slate-400 hover:text-white transition";
-        }
-      });
-
-      discCounterBadge.textContent = `SLEEVE ${activeIndex + 1} / ${DISCS.length}`;
-    }
-
-    function goToDisc(newIndex) {
-      if (newIndex < 0) newIndex = 0;
-      if (newIndex >= DISCS.length) newIndex = DISCS.length - 1;
-      activeIndex = newIndex;
-      updateCarouselPositions();
-      syncURLParam();
-
-      if (!searchQuery) {
-        renderActiveDiscTracks();
-      }
-    }
-
-    /**
-     * ============================================================================
-     *  TOUCH & MOUSE SWIPE GESTURES ON THE 3D CAROUSEL
-     * ============================================================================
-     */
-    let startX = 0;
-    let isDragging = false;
-
-    carouselStage.addEventListener("pointerdown", (e) => {
-      startX = e.clientX;
-      isDragging = true;
-    });
-
-    window.addEventListener("pointerup", (e) => {
-      if (!isDragging) return;
-      isDragging = false;
-      const deltaX = e.clientX - startX;
-      if (Math.abs(deltaX) > 36) {
-        if (deltaX < 0 && activeIndex < DISCS.length - 1) {
-          goToDisc(activeIndex + 1);
-        } else if (deltaX > 0 && activeIndex > 0) {
-          goToDisc(activeIndex - 1);
-        }
-      }
-    });
-
-    document.getElementById("prevDiscBtn").addEventListener("click", () => goToDisc(activeIndex - 1));
-    document.getElementById("nextDiscBtn").addEventListener("click", () => goToDisc(activeIndex + 1));
-
-    /**
-     * ============================================================================
-     *  RENDER TRACKLIST (SINGLE DISC VIEW OR GLOBAL SEARCH VIEW)
-     * ============================================================================
-     */
-    function selectTrack(discIdx, folderIdx, trackIdx) {
-      selectedTrackKey = `${discIdx}-${folderIdx}-${trackIdx}`;
-      if (searchQuery) {
-        renderSearchResults();
-      } else {
-        renderActiveDiscTracks();
-      }
+      const activeTab = tabsEl.children[activeIndex];
+      if (activeTab) activeTab.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
     }
 
     function renderActiveDiscTracks() {
-      activeDiscHeader.classList.remove("hidden");
-      searchResultsHeader.classList.add("hidden");
-
       const disc = DISCS[activeIndex];
-      const totalTracks = disc.folders.reduce((sum, f) => sum + f.tracks.length, 0);
+      if (!disc) return;
 
-      activeDiscPill.textContent = disc.code;
-      activeDiscStats.textContent = `${disc.folders.length} ${disc.folders.length === 1 ? "Folder" : "Folders"} • ${totalTracks} Tracks`;
-      activeDiscTitle.textContent = disc.title;
-      activeDiscSubtitle.textContent = disc.subtitle;
+      counterEl.textContent = `SLEEVE ${activeIndex + 1} / ${DISCS.length}`;
+      badgeEl.textContent = disc.code;
+      titleEl.textContent = disc.title;
+      subtitleEl.textContent = `${disc.subtitle} (${disc.tracks.length} tracks)`;
 
-      if (disc.playlistUrl && disc.playlistUrl.trim().length > 0) {
-        activePlaylistLink.href = disc.playlistUrl;
-        activePlaylistLink.classList.remove("hidden");
-        activePlaylistLink.classList.add("inline-flex");
+      if (disc.playlistUrl) {
+        playlistBtnEl.href = disc.playlistUrl;
+        playlistBtnEl.onclick = e => openExternalLink(e, disc.playlistUrl);
+        playlistBtnEl.classList.remove("hidden");
+        playlistBtnEl.classList.add("inline-flex");
       } else {
-        activePlaylistLink.classList.add("hidden");
-        activePlaylistLink.classList.remove("inline-flex");
+        playlistBtnEl.classList.add("hidden");
+        playlistBtnEl.classList.remove("inline-flex");
       }
 
-      tracklistContainer.innerHTML = "";
-
-      disc.folders.forEach((folder, fIdx) => {
-        const folderCard = document.createElement("div");
-        folderCard.className = "rounded-2xl bg-skoda-panel/90 border border-skoda-border/80 overflow-hidden";
-
-        const folderHeader = document.createElement("div");
-        folderHeader.className = "px-3.5 py-2 bg-skoda-card/80 border-b border-skoda-border/60 flex items-center justify-between";
-        folderHeader.innerHTML = `
-          <div class="flex items-center gap-2 min-w-0">
-            <svg class="w-4 h-4 text-skoda-glow shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-            </svg>
-            <span class="text-xs font-bold text-white tracking-wide truncate">${folder.name}</span>
+      trackContainerEl.innerHTML = disc.tracks.map((track, i) => {
+        const ytUrl = buildYtSearchUrl(track);
+        const num = String(i + 1).padStart(2, "0");
+        return `
+          <div class="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-skoda-card/90 hover:bg-skoda-card border border-skoda-border/80 transition">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span class="text-[10px] font-mono text-slate-500 w-5 shrink-0">${num}</span>
+              <span class="text-xs text-slate-100 truncate">${escapeHtml(track)}</span>
+            </div>
+            <a href="${ytUrl}" target="_blank" rel="noopener noreferrer"
+              onclick="openExternalLink(event, '${ytUrl.replace(/'/g, "\\'")}')"
+              class="yt-link shrink-0 px-2 py-1 rounded-lg bg-skoda-green/15 hover:bg-skoda-green/30 border border-skoda-green/40 text-[10px] font-mono font-semibold text-skoda-glow active:scale-95 transition">
+              YT ↗
+            </a>
           </div>
-          <span class="text-[10px] font-mono text-slate-400 shrink-0 ml-2">FLD ${String(fIdx + 1).padStart(2, "0")} • ${folder.tracks.length}</span>
         `;
-        folderCard.appendChild(folderHeader);
-
-        const list = document.createElement("div");
-        list.className = "divide-y divide-skoda-border/40";
-
-        folder.tracks.forEach((track, tIdx) => {
-          const key = `${activeIndex}-${fIdx}-${tIdx}`;
-          const isSelected = key === selectedTrackKey;
-          const ytSearchUrl = `https://music.youtube.com/search?q=${encodeURIComponent(track)}`;
-
-          const row = document.createElement("div");
-          row.className = `w-full px-3.5 py-2 flex items-center gap-2 transition ${
-            isSelected ? "bg-skoda-green/15" : "hover:bg-white/[0.03]"
-          }`;
-
-          const selectBtn = document.createElement("button");
-          selectBtn.type = "button";
-          selectBtn.className = "flex-1 min-w-0 text-left flex items-center gap-2.5 py-0.5 active:opacity-80";
-
-          const numSpan = document.createElement("span");
-          numSpan.className = `font-mono text-xs w-6 shrink-0 ${isSelected ? "text-skoda-glow font-bold" : "text-slate-500"}`;
-          numSpan.textContent = String(tIdx + 1).padStart(2, "0");
-
-          const titleSpan = document.createElement("span");
-          titleSpan.className = `text-xs flex-1 truncate ${isSelected ? "text-white font-semibold" : "text-slate-200"}`;
-          titleSpan.textContent = track;
-
-          selectBtn.appendChild(numSpan);
-          selectBtn.appendChild(titleSpan);
-
-          if (isSelected) {
-            const cuedBadge = document.createElement("span");
-            cuedBadge.className = "text-[10px] font-mono text-skoda-glow uppercase shrink-0";
-            cuedBadge.textContent = "● CUED";
-            selectBtn.appendChild(cuedBadge);
-          }
-
-          selectBtn.addEventListener("click", () => selectTrack(activeIndex, fIdx, tIdx));
-
-          const ytLink = document.createElement("a");
-          ytLink.href = ytSearchUrl;
-          ytLink.target = "_blank";
-          ytLink.rel = "noopener noreferrer";
-          ytLink.title = `Find "${track}" on YouTube Music`;
-          ytLink.className = "yt-link shrink-0 px-2 py-1 rounded-md bg-skoda-card hover:bg-red-500/20 border border-skoda-border hover:border-red-500/40 text-[10px] font-mono font-bold text-slate-300 hover:text-red-300 transition";
-          ytLink.textContent = "YT ↗";
-          ytLink.addEventListener("click", (e) => openExternalLink(e, ytSearchUrl));
-
-          row.appendChild(selectBtn);
-          row.appendChild(ytLink);
-          list.appendChild(row);
-        });
-
-        folderCard.appendChild(list);
-        tracklistContainer.appendChild(folderCard);
-      });
+      }).join("");
     }
 
     function renderSearchResults() {
-      activeDiscHeader.classList.add("hidden");
-      searchResultsHeader.classList.remove("hidden");
-
-      const q = searchQuery.toLowerCase().trim();
-      const matches = [];
-
-      DISCS.forEach((disc, dIdx) => {
-        disc.folders.forEach((folder, fIdx) => {
-          folder.tracks.forEach((track, tIdx) => {
-            if (track.toLowerCase().includes(q) || folder.name.toLowerCase().includes(q)) {
-              matches.push({ disc, dIdx, folder, fIdx, track, tIdx });
-            }
-          });
-        });
-      });
-
-      searchCountText.textContent = `${matches.length} ${matches.length === 1 ? "match" : "matches"} across ${DISCS.length} discs`;
-      tracklistContainer.innerHTML = "";
-
-      if (matches.length === 0) {
-        const emptyBox = document.createElement("div");
-        emptyBox.className = "rounded-2xl bg-skoda-panel border border-skoda-border p-6 text-center";
-        const emptyText = document.createElement("p");
-        emptyText.className = "text-xs text-slate-400";
-        emptyText.textContent = `No songs or folders matched "${searchQuery}".`;
-        emptyBox.appendChild(emptyText);
-        tracklistContainer.appendChild(emptyBox);
+      const q = searchQuery.trim().toLowerCase();
+      if (!q) {
+        globalResultsEl.classList.add("hidden");
+        trackContainerEl.classList.remove("hidden");
         return;
       }
 
-      const card = document.createElement("div");
-      card.className = "rounded-2xl bg-skoda-panel border border-skoda-border divide-y divide-skoda-border/50 overflow-hidden";
+      globalResultsEl.classList.remove("hidden");
+      trackContainerEl.classList.add("hidden");
 
-      matches.forEach(({ disc, dIdx, folder, fIdx, track, tIdx }) => {
-        const ytSearchUrl = `https://music.youtube.com/search?q=${encodeURIComponent(track)}`;
-        const row = document.createElement("div");
-        row.className = "w-full px-3.5 py-2 hover:bg-white/[0.04] transition flex items-center justify-between gap-2";
-
-        const selectBtn = document.createElement("button");
-        selectBtn.type = "button";
-        selectBtn.className = "min-w-0 flex-1 text-left py-0.5 active:opacity-80";
-
-        const titleDiv = document.createElement("div");
-        titleDiv.className = "text-xs font-medium text-white truncate";
-        titleDiv.textContent = track;
-
-        const metaDiv = document.createElement("div");
-        metaDiv.className = "text-[10px] font-mono text-slate-400 truncate mt-0.5";
-        metaDiv.textContent = `${folder.name} • Track ${String(tIdx + 1).padStart(2, "0")}`;
-
-        selectBtn.appendChild(titleDiv);
-        selectBtn.appendChild(metaDiv);
-        selectBtn.addEventListener("click", () => {
-          searchQuery = "";
-          searchInput.value = "";
-          clearSearchBtn.classList.add("hidden");
-          goToDisc(dIdx);
-          selectTrack(dIdx, fIdx, tIdx);
+      const matches = [];
+      DISCS.forEach((disc, dIdx) => {
+        disc.tracks.forEach((track, tIdx) => {
+          if (track.toLowerCase().includes(q) || disc.title.toLowerCase().includes(q)) {
+            matches.push({ disc, dIdx, track, tNum: tIdx + 1 });
+          }
         });
-
-        const rightActions = document.createElement("div");
-        rightActions.className = "shrink-0 flex items-center gap-1.5";
-
-        const ytLink = document.createElement("a");
-        ytLink.href = ytSearchUrl;
-        ytLink.target = "_blank";
-        ytLink.rel = "noopener noreferrer";
-        ytLink.className = "yt-link px-2 py-1 rounded-md bg-skoda-card hover:bg-red-500/20 border border-skoda-border hover:border-red-500/40 text-[10px] font-mono font-bold text-slate-300 hover:text-red-300 transition";
-        ytLink.title = "Find on YouTube Music";
-        ytLink.textContent = "YT ↗";
-        ytLink.addEventListener("click", (e) => openExternalLink(e, ytSearchUrl));
-
-        const discBadge = document.createElement("span");
-        discBadge.className = "px-2 py-1 rounded-md text-[10px] font-mono font-bold bg-skoda-green/20 text-skoda-glow border border-skoda-green/40";
-        discBadge.textContent = disc.code;
-
-        rightActions.appendChild(ytLink);
-        rightActions.appendChild(discBadge);
-
-        row.appendChild(selectBtn);
-        row.appendChild(rightActions);
-        card.appendChild(row);
       });
 
-      tracklistContainer.appendChild(card);
+      if (!matches.length) {
+        globalResultsEl.innerHTML = `<div class="text-center py-8 text-xs text-slate-400">No tracks matching "${escapeHtml(searchQuery)}" across all 16 discs.</div>`;
+        return;
+      }
+
+      globalResultsEl.innerHTML = `
+        <div class="text-[10px] font-mono text-skoda-glow px-1">FOUND ${matches.length} MATCH${matches.length === 1 ? "" : "ES"} ACROSS BINDER</div>
+        ${matches.slice(0, 120).map(m => {
+          const ytUrl = buildYtSearchUrl(m.track);
+          return `
+            <div class="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-skoda-card border border-skoda-border">
+              <button type="button" onclick="jumpToMatch(${m.dIdx})" class="flex items-center gap-2 min-w-0 text-left flex-1">
+                <span class="px-1.5 py-0.5 rounded bg-skoda-green/20 text-skoda-glow font-mono text-[10px] font-bold shrink-0">${m.disc.code} #${m.tNum}</span>
+                <span class="text-xs text-white truncate">${escapeHtml(m.track)}</span>
+              </button>
+              <a href="${ytUrl}" target="_blank" rel="noopener noreferrer"
+                onclick="openExternalLink(event, '${ytUrl.replace(/'/g, "\\'")}')"
+                class="yt-link shrink-0 px-2 py-1 rounded-lg bg-skoda-green/15 border border-skoda-green/40 text-[10px] font-mono font-semibold text-skoda-glow">
+                YT ↗
+              </a>
+            </div>
+          `;
+        }).join("")}
+      `;
     }
 
-    /**
-     * ============================================================================
-     *  SEARCH INPUT & COPY QR LINK HANDLERS
-     * ============================================================================
-     */
-    searchInput.addEventListener("input", (e) => {
+    function jumpToMatch(discIdx) {
+      searchQuery = "";
+      searchInputEl.value = "";
+      clearSearchBtn.classList.add("hidden");
+      selectDisc(discIdx);
+      renderSearchResults();
+    }
+
+    function selectDisc(idx) {
+      const total = DISCS.length;
+      activeIndex = ((idx % total) + total) % total;
+      renderCarousel();
+      renderActiveDiscTracks();
+    }
+
+    // Navigation & Swipe Gestures
+    document.getElementById("prevDiscBtn").addEventListener("click", () => selectDisc(activeIndex - 1));
+    document.getElementById("nextDiscBtn").addEventListener("click", () => selectDisc(activeIndex + 1));
+
+    let touchStartX = 0;
+    stageEl.addEventListener("touchstart", e => { touchStartX = e.changedTouches[0].clientX; }, { passive: true });
+    stageEl.addEventListener("touchend", e => {
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(dx) > 36) selectDisc(activeIndex + (dx < 0 ? 1 : -1));
+    }, { passive: true });
+
+    // Search Events
+    searchInputEl.addEventListener("input", e => {
       searchQuery = e.target.value;
       clearSearchBtn.classList.toggle("hidden", !searchQuery);
-      if (searchQuery.trim()) {
-        renderSearchResults();
+      renderSearchResults();
+    });
+    clearSearchBtn.addEventListener("click", () => {
+      searchQuery = "";
+      searchInputEl.value = "";
+      clearSearchBtn.classList.add("hidden");
+      renderSearchResults();
+    });
+
+    // Share Link
+    document.getElementById("copyLinkBtn").addEventListener("click", () => {
+      const shareUrl = `${window.location.origin}${window.location.pathname}?disc=${activeIndex + 1}`;
+      const inp = document.createElement("input");
+      inp.value = shareUrl;
+      document.body.appendChild(inp);
+      inp.select();
+      document.execCommand("copy");
+      document.body.removeChild(inp);
+      showToast(`Copied link for ${DISCS[activeIndex].code}`);
+    });
+
+    // Fullscreen Toggle
+    document.getElementById("fullscreenBtn").addEventListener("click", () => {
+      const docEl = document.documentElement;
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        if (docEl.requestFullscreen) {
+          docEl.requestFullscreen().catch(() => showToast("Use 'Add to Home Screen' for native fullscreen"));
+        } else if (docEl.webkitRequestFullscreen) {
+          docEl.webkitRequestFullscreen();
+        } else {
+          showToast("Use 'Add to Home Screen' for native fullscreen");
+        }
       } else {
-        renderActiveDiscTracks();
+        if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
       }
     });
 
-    clearSearchBtn.addEventListener("click", () => {
-      searchQuery = "";
-      searchInput.value = "";
-      clearSearchBtn.classList.add("hidden");
-      renderActiveDiscTracks();
-    });
+    // Modal & Photo Cropper Logic
+    const importModal = document.getElementById("importModal");
+    const targetDiscSelect = document.getElementById("importTargetDisc");
+    const importTitleInput = document.getElementById("importDiscTitle");
+    const importTextarea = document.getElementById("importTextarea");
 
-    document.getElementById("resetSearchLink").addEventListener("click", () => {
-      searchQuery = "";
-      searchInput.value = "";
-      clearSearchBtn.classList.add("hidden");
-      renderActiveDiscTracks();
-    });
-
-    function showToast(message) {
-      const toast = document.getElementById("toast");
-      document.getElementById("toastMsg").textContent = message;
-      toast.classList.remove("opacity-0");
-      setTimeout(() => toast.classList.add("opacity-0"), 2200);
+    function populateModalSelect() {
+      targetDiscSelect.innerHTML = DISCS.map((d, i) => `<option value="${i}">${d.code} (${escapeHtml(d.title)})</option>`).join("");
     }
 
-    document.getElementById("copyLinkBtn").addEventListener("click", () => {
-      const shareUrl = `${window.location.origin}${window.location.pathname}?disc=${activeIndex + 1}`;
-      const tempInput = document.createElement("input");
-      tempInput.value = shareUrl;
-      document.body.appendChild(tempInput);
-      tempInput.select();
-      document.execCommand("copy");
-      document.body.removeChild(tempInput);
-      showToast(`Copied link for Disc 0${activeIndex + 1} (?disc=${activeIndex + 1})`);
+    function loadDiscIntoEditor(idx) {
+      const d = DISCS[idx];
+      importTitleInput.value = d.title;
+      importTextarea.value = d.tracks.join("\n");
+    }
+
+    document.getElementById("openImportBtn").addEventListener("click", () => {
+      populateModalSelect();
+      targetDiscSelect.value = String(activeIndex);
+      loadDiscIntoEditor(activeIndex);
+      importModal.classList.remove("hidden");
+      importModal.classList.add("flex");
     });
 
-    /**
-     * ============================================================================
-     *  PASTE `cmd` `dir /b /s` TRACKLIST & CUSTOM DISC PHOTO CROPPER MODAL
-     * ============================================================================
-     */
-    const importModal = document.getElementById("importModal");
-    const customArtInput = document.getElementById("customArtInput");
-    const customArtFileName = document.getElementById("customArtFileName");
-    const copyDataUrlRow = document.getElementById("copyDataUrlRow");
-    const copyDataUrlBtn = document.getElementById("copyDataUrlBtn");
+    document.getElementById("closeImportBtn").addEventListener("click", () => {
+      importModal.classList.add("hidden");
+      importModal.classList.remove("flex");
+    });
 
-    /**
-     * Center-crops any uploaded CD photo to a 500x500 square JPEG Data URL
-     * so it fits cleanly inside the circular disc frame and stays lightweight.
-     */
-    function cropAndCompressDiscImage(file, callback) {
+    targetDiscSelect.addEventListener("change", e => loadDiscIntoEditor(Number(e.target.value)));
+
+    document.getElementById("saveImportBtn").addEventListener("click", () => {
+      const idx = Number(targetDiscSelect.value);
+      const lines = importTextarea.value.split(/\r?\n/).map(l => l.replace(/^.*\\/, "").replace(/\.mp3$/i, "").trim()).filter(Boolean);
+      if (importTitleInput.value.trim()) DISCS[idx].title = importTitleInput.value.trim();
+      if (lines.length) DISCS[idx].tracks = lines;
+      importModal.classList.add("hidden");
+      importModal.classList.remove("flex");
+      selectDisc(idx);
+      showToast(`Updated ${DISCS[idx].code} (${DISCS[idx].tracks.length} tracks)`);
+    });
+
+    document.getElementById("photoUploadInput").addEventListener("change", e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const target = document.getElementById("photoTargetSelect").value;
       const reader = new FileReader();
-      reader.onload = (ev) => {
+      reader.onload = ev => {
         const img = new Image();
         img.onload = () => {
-          const size = 500;
           const canvas = document.createElement("canvas");
-          canvas.width = size;
-          canvas.height = size;
+          canvas.width = 500;
+          canvas.height = 500;
           const ctx = canvas.getContext("2d");
-
-          const minSide = Math.min(img.width, img.height);
-          const sx = (img.width - minSide) / 2;
-          const sy = (img.height - minSide) / 2;
-
-          ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
-          const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.84);
-          callback(compressedDataUrl);
+          const size = Math.min(img.width, img.height);
+          const sx = (img.width - size) / 2;
+          const sy = (img.height - size) / 2;
+          ctx.drawImage(img, sx, sy, size, size, 0, 0, 500, 500);
+          lastGeneratedDataUrl = canvas.toDataURL("image/jpeg", 0.86);
+          if (target === "retail") {
+            DISCS[0].artUrl = lastGeneratedDataUrl;
+            document.getElementById("dataUrlStatus").textContent = "Disc 01 (dj-sebi.jpg) 500×500 ready";
+            selectDisc(0);
+            showToast("Applied photo to Disc 01!");
+          } else {
+            DISCS.forEach(d => { if (!d.isRetail) d.artUrl = lastGeneratedDataUrl; });
+            document.getElementById("dataUrlStatus").textContent = "Discs 02–16 (maxell.jpg) 500×500 ready";
+            selectDisc(activeIndex === 0 ? 1 : activeIndex);
+            showToast("Applied Maxell photo to Discs 02–16!");
+          }
+          document.getElementById("dataUrlRow").classList.remove("hidden");
         };
         img.src = ev.target.result;
       };
       reader.readAsDataURL(file);
-    }
-
-    customArtInput.addEventListener("change", (e) => {
-      const file = e.target.files && e.target.files[0];
-      if (!file) return;
-      customArtFileName.textContent = `Processing ${file.name}...`;
-      cropAndCompressDiscImage(file, (dataUrl) => {
-        pendingCustomArtDataUrl = dataUrl;
-        customArtFileName.textContent = `Ready: ${file.name} (500×500)`;
-        copyDataUrlRow.classList.remove("hidden");
-
-        // Immediately preview on the selected disc in the live carousel
-        const targetIdx = parseInt(document.getElementById("importTargetDisc").value, 10);
-        DISCS[targetIdx].isCustomGraphic = true;
-        DISCS[targetIdx].artUrl = dataUrl;
-        renderCarousel();
-        goToDisc(targetIdx);
-      });
     });
 
-    copyDataUrlBtn.addEventListener("click", () => {
-      if (!pendingCustomArtDataUrl) return;
-      const tempInput = document.createElement("textarea");
-      tempInput.value = pendingCustomArtDataUrl;
-      document.body.appendChild(tempInput);
-      tempInput.select();
+    document.getElementById("copyDataUrlBtn").addEventListener("click", () => {
+      if (!lastGeneratedDataUrl) return;
+      const inp = document.createElement("input");
+      inp.value = lastGeneratedDataUrl;
+      document.body.appendChild(inp);
+      inp.select();
       document.execCommand("copy");
-      document.body.removeChild(tempInput);
-      showToast("Copied Data URL! Paste it into artUrl in index.html.");
+      document.body.removeChild(inp);
+      showToast("Copied 500×500 Data URL!");
     });
 
-    document.getElementById("openImportBtn").addEventListener("click", () => {
-      document.getElementById("importTargetDisc").value = String(activeIndex);
-      pendingCustomArtDataUrl = null;
-      customArtFileName.textContent = "Test / Embed Disc Photo (auto-cropped to 500×500)...";
-      copyDataUrlRow.classList.add("hidden");
-      importModal.classList.remove("hidden");
-    });
-
-    document.getElementById("closeImportBtn").addEventListener("click", () => importModal.classList.add("hidden"));
-    document.getElementById("cancelImportBtn").addEventListener("click", () => importModal.classList.add("hidden"));
-
-    document.getElementById("applyImportBtn").addEventListener("click", () => {
-      const targetIdx = parseInt(document.getElementById("importTargetDisc").value, 10);
-      const customTitle = document.getElementById("importDiscTitle").value.trim();
-      const rawText = document.getElementById("importTextarea").value.trim();
-
-      if (customTitle) {
-        DISCS[targetIdx].title = customTitle;
+    // Init & URL ?disc= Deep-Linking
+    window.addEventListener("resize", renderCarousel);
+    window.addEventListener("DOMContentLoaded", () => {
+      const params = new URLSearchParams(window.location.search);
+      const discParam = parseInt(params.get("disc"), 10);
+      if (!isNaN(discParam) && discParam >= 1 && discParam <= DISCS.length) {
+        activeIndex = discParam - 1;
       }
-
-      if (pendingCustomArtDataUrl) {
-        DISCS[targetIdx].isCustomGraphic = true;
-        DISCS[targetIdx].artUrl = pendingCustomArtDataUrl;
-      }
-
-      if (rawText) {
-        const lines = rawText.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-        const folderMap = new Map();
-
-        lines.forEach((line) => {
-          const cleaned = line.replace(/^[A-Za-z]:\\/, "").replace(/\.mp3$/i, "");
-          const parts = cleaned.split("\\");
-          let folderName = "Root Folder";
-          let songName = cleaned;
-
-          if (parts.length >= 2) {
-            folderName = parts[parts.length - 2];
-            songName = parts[parts.length - 1];
-          }
-
-          if (!folderMap.has(folderName)) {
-            folderMap.set(folderName, []);
-          }
-          folderMap.get(folderName).push(songName);
-        });
-
-        const parsedFolders = Array.from(folderMap.entries()).map(([name, tracks]) => ({
-          name,
-          tracks
-        }));
-
-        if (parsedFolders.length > 0) {
-          DISCS[targetIdx].folders = parsedFolders;
-          DISCS[targetIdx].subtitle = `${parsedFolders.length} ${parsedFolders.length === 1 ? "Folder" : "Folders"} • Updated Tracklist`;
-        }
-      }
-
-      importModal.classList.add("hidden");
-      document.getElementById("importTextarea").value = "";
-      document.getElementById("importDiscTitle").value = "";
-      renderCarousel();
-      goToDisc(targetIdx);
-      showToast(`Updated Disc 0${targetIdx + 1}!`);
-    });
-
-    // Boot App cleanly on DOMContentLoaded
-    document.addEventListener("DOMContentLoaded", () => {
-      initFromURL();
-      syncOrientationLayout();
-      renderCarousel();
-      renderActiveDiscTracks();
+      selectDisc(activeIndex);
     });
   </script>
 </body>
