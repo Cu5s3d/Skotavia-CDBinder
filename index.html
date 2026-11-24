@@ -7,95 +7,13 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="theme-color" content="#050706" />
+
   <!-- Static Web App Manifest & Icons for native Chrome WebAPK & iOS Home Screen installation -->
   <link rel="manifest" href="./manifest.json" />
   <link rel="icon" type="image/png" href="./icon.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="./icon.png" />
+
   <title>Škotavia MP3 Binder • Škoda Swing</title>
-    // Dynamically render ./icon.png at 90% scale onto a transparent 512x512 canvas
-    // so Android adaptive masks (squircle/circle) & iOS rounded corners never clip the CD edge.
-    (function () {
-      const startUrl = new URL(".", window.location.href).href;
-      const primaryIconUrl = new URL("./icon.png", window.location.href).href;
-      const fallbackIconUrl = new URL("./maxell.jpg", window.location.href).href;
-
-      function applyManifest(resolvedIconSrc, mimeType) {
-        try {
-          const manifest = {
-            name: "Octavia MP3 Binder",
-            short_name: "CD Binder",
-            start_url: startUrl,
-            scope: startUrl,
-            display: "standalone",
-            orientation: "any",
-            background_color: "#07090b",
-            theme_color: "#0a0e0c",
-            icons: [
-              { src: resolvedIconSrc, sizes: "192x192", type: mimeType, purpose: "any maskable" },
-              { src: resolvedIconSrc, sizes: "512x512", type: mimeType, purpose: "any maskable" }
-            ]
-          };
-          const blob = new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" });
-          const manifestLink = document.getElementById("pwaManifestLink");
-          if (manifestLink) manifestLink.setAttribute("href", URL.createObjectURL(blob));
-        } catch (err) {
-          console.warn("Manifest generation skipped:", err);
-        }
-      }
-
-      // Apply immediate manifest with ./icon.png while offscreen 90% scaler runs
-      applyManifest(primaryIconUrl, "image/png");
-
-      try {
-        const img = new Image();
-        img.crossOrigin = "anonymous";
-        img.onload = function () {
-          try {
-            const size = 512;
-            const scale = 0.90;
-            const drawSize = size * scale; // 460.8px
-            const offset = (size - drawSize) / 2; // 25.6px transparent safe margin on all sides
-
-            const canvas = document.createElement("canvas");
-            canvas.width = size;
-            canvas.height = size;
-            const ctx = canvas.getContext("2d");
-            ctx.clearRect(0, 0, size, size);
-            ctx.imageSmoothingEnabled = true;
-            ctx.imageSmoothingQuality = "high";
-            ctx.drawImage(img, offset, offset, drawSize, drawSize);
-
-            const paddedPngUrl = canvas.toDataURL("image/png");
-            const appleLink = document.getElementById("appleTouchIconLink");
-            const favLink = document.getElementById("faviconLink");
-            if (appleLink) appleLink.setAttribute("href", paddedPngUrl);
-            if (favLink) {
-              favLink.setAttribute("type", "image/png");
-              favLink.setAttribute("href", paddedPngUrl);
-            }
-            applyManifest(paddedPngUrl, "image/png");
-          } catch (canvasErr) {
-            console.warn("Canvas icon padding fallback to raw ./icon.png:", canvasErr);
-          }
-        };
-        img.onerror = function () {
-          // Graceful fallback if ./icon.png hasn't been uploaded yet
-          const appleLink = document.getElementById("appleTouchIconLink");
-          const favLink = document.getElementById("faviconLink");
-          if (appleLink) appleLink.setAttribute("href", fallbackIconUrl);
-          if (favLink) {
-            favLink.setAttribute("type", "image/jpeg");
-            favLink.setAttribute("href", fallbackIconUrl);
-          }
-          applyManifest(fallbackIconUrl, "image/jpeg");
-        };
-        img.src = primaryIconUrl;
-      } catch (e) {
-        console.warn("Icon scaler skipped:", e);
-      }
-    })();
-  </script>
-  <title>Škoda Octavia • MP3 CD Binder</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
   <script>
@@ -103,18 +21,18 @@
       theme: {
         extend: {
           fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
-          colors: { skoda: { bg: '#07090b', panel: '#0e1312', card: '#141c1a', border: '#1f2e2a', green: '#4ba82e', glow: '#68d348' } }
+          colors: { skoda: { bg: '#050706', panel: '#0d1210', card: '#131b19', border: '#1f2e2a', green: '#4ba82e', glow: '#68d348' } }
         }
       }
     };
   </script>
   <style>
     * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
-    html, body { background-color: #07090b; color: #e2e8f0; overscroll-behavior-y: none; touch-action: manipulation; }
+    html, body { background-color: #050706; color: #e2e8f0; overscroll-behavior-y: none; touch-action: manipulation; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     ::-webkit-scrollbar { width: 5px; height: 5px; }
-    ::-webkit-scrollbar-track { background: #0e1312; }
+    ::-webkit-scrollbar-track { background: #0d1210; }
     ::-webkit-scrollbar-thumb { background: #263833; border-radius: 9999px; }
 
     /* =========================================================================
@@ -137,7 +55,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+      transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.42s ease;
       will-change: transform, opacity;
       user-select: none;
       cursor: pointer;
@@ -229,7 +147,7 @@
     }
 
     .burned-label-pill {
-      background: rgba(7, 9, 11, 0.72);
+      background: rgba(5, 7, 6, 0.75);
       backdrop-filter: blur(3px);
       border: 1px solid rgba(255, 255, 255, 0.18);
       text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95);
@@ -255,7 +173,7 @@
       border-radius: 50%;
       z-index: 6;
       pointer-events: none;
-      background: radial-gradient(circle, #07090b 35%, rgba(220,235,230,0.24) 37%, rgba(18,26,24,0.88) 68%, rgba(255,255,255,0.28) 70%, transparent 74%);
+      background: radial-gradient(circle, #050706 35%, rgba(220,235,230,0.24) 37%, rgba(18,26,24,0.88) 68%, rgba(255,255,255,0.28) 70%, transparent 74%);
       box-shadow: inset 0 0 8px rgba(0,0,0,0.88);
     }
 
@@ -415,7 +333,7 @@
                 <span id="activeDiscBadge" class="px-1.5 py-0.5 rounded bg-skoda-green/20 border border-skoda-green/40 text-skoda-glow font-mono text-[10px] font-bold shrink-0">DISC 01</span>
                 <h2 id="activeDiscTitle" class="text-xs sm:text-sm font-bold text-white truncate">DJ Sebi — Locul tau in inima mea</h2>
               </div>
-              <p id="activeDiscSubtitle" class="text-[11px] text-slate-400 mt-0.5 truncate">Pressed Audio CD • 10 Tracks</p>
+              <p id="activeDiscSubtitle" class="text-[11px] text-slate-400 mt-0.5 truncate">Pressed Audio CD • Total Studio (10 tracks)</p>
             </div>
 
             <div class="flex items-center gap-1.5 shrink-0">
@@ -1915,7 +1833,7 @@
   </script>
 
   <script>
-    const STORAGE_KEY = "octavia_cd_binder_v17_animated";
+    const STORAGE_KEY = "octavia_cd_binder_v18_clean";
     let DEFAULT_DISCS = [];
     try {
       DEFAULT_DISCS = JSON.parse(document.getElementById("disc-data").textContent);
@@ -1923,9 +1841,15 @@
       console.error("Failed to parse disc JSON:", e);
     }
 
-    // Purge legacy keys so cache bumps cleanly
+    // Purge legacy storage keys so cache updates cleanly
     try {
-      ["octavia_cd_binder_v1", "octavia_cd_binder_v6", "octavia_cd_binder_v16_final", "octavia_cd_binder_discs"].forEach(k => localStorage.removeItem(k));
+      [
+        "octavia_cd_binder_v1",
+        "octavia_cd_binder_v6",
+        "octavia_cd_binder_v16_final",
+        "octavia_cd_binder_v17_animated",
+        "octavia_cd_binder_discs"
+      ].forEach(k => localStorage.removeItem(k));
     } catch (_) {}
 
     let DISCS = JSON.parse(JSON.stringify(DEFAULT_DISCS));
@@ -2017,7 +1941,6 @@
       discTabEls.length = 0;
 
       DISCS.forEach((disc, idx) => {
-        // Quick-select pill tab
         const tab = document.createElement("button");
         tab.type = "button";
         tab.textContent = `CD ${disc.id}`;
@@ -2025,7 +1948,6 @@
         tabsEl.appendChild(tab);
         discTabEls.push(tab);
 
-        // Persistent 3D Disc Slot
         const slot = document.createElement("div");
         slot.className = "disc-slot pos-hidden-right";
         slot.dataset.index = String(idx);
@@ -2033,7 +1955,6 @@
         const discEl = document.createElement("div");
         discEl.className = "cd-disc";
 
-        // Inner spinning rotor layer (rotates smoothly when parent slot has .pos-active)
         const rotor = document.createElement("div");
         rotor.className = "disc-rotor";
 
@@ -2105,7 +2026,6 @@
       });
     }
 
-    // Update persistent slot classes in-place so CSS transitions glide smoothly
     function updateCarouselPositions() {
       const total = DISCS.length;
       const posClasses = ["pos-hidden-left", "pos-prev2", "pos-prev", "pos-active", "pos-next", "pos-next2", "pos-hidden-right"];
@@ -2138,7 +2058,6 @@
       if (activeTab) activeTab.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
     }
 
-    // Measure track title overflow & apply smooth side-scrolling marquee only to overflowing lines
     function applyTrackMarquees(rootEl = document) {
       requestAnimationFrame(() => {
         const viewports = rootEl.querySelectorAll(".track-title-viewport");
@@ -2271,7 +2190,6 @@
       renderActiveDiscTracks();
     }
 
-    // Navigation & Swipe Gestures
     document.getElementById("prevDiscBtn").addEventListener("click", () => selectDisc(activeIndex - 1));
     document.getElementById("nextDiscBtn").addEventListener("click", () => selectDisc(activeIndex + 1));
 
@@ -2282,7 +2200,6 @@
       if (Math.abs(dx) > 32) selectDisc(activeIndex + (dx < 0 ? 1 : -1));
     }, { passive: true });
 
-    // Search Events
     searchInputEl.addEventListener("input", e => {
       searchQuery = e.target.value;
       clearSearchBtn.classList.toggle("hidden", !searchQuery);
@@ -2295,7 +2212,6 @@
       renderSearchResults();
     });
 
-    // Share Link (never includes #admin)
     document.getElementById("copyLinkBtn").addEventListener("click", () => {
       const shareUrl = `${window.location.origin}${window.location.pathname}?disc=${activeIndex + 1}`;
       const inp = document.createElement("input");
@@ -2307,7 +2223,6 @@
       showToast(`Copied link for ${DISCS[activeIndex].code}`);
     });
 
-    // Fullscreen Toggle
     document.getElementById("fullscreenBtn").addEventListener("click", () => {
       const docEl = document.documentElement;
       if (!document.fullscreenElement && !document.webkitFullscreenElement) {
@@ -2324,7 +2239,6 @@
       }
     });
 
-    // Admin Modal & Photo Cropper Logic
     const targetDiscSelect = document.getElementById("importTargetDisc");
     const importTitleInput = document.getElementById("importDiscTitle");
     const importTextarea = document.getElementById("importTextarea");
@@ -2427,7 +2341,6 @@
       showToast("Copied 500×500 Data URL!");
     });
 
-    // Re-measure track marquees on orientation change or resize
     window.addEventListener("resize", () => {
       applyTrackMarquees(searchQuery.trim() ? globalResultsEl : trackContainerEl);
     });
