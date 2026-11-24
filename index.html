@@ -55,46 +55,144 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.42s ease;
+      transition: transform 0.46s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.42s ease;
       will-change: transform, opacity;
       user-select: none;
       cursor: pointer;
     }
 
-    /* Slot Position States */
-    .disc-slot.pos-hidden-left {
+    /* -------------------------------------------------------------------------
+       MODE 1: PANORAMIC CAROUSEL (Default in Landscape)
+       ------------------------------------------------------------------------- */
+    .carousel-stage[data-anim-mode="carousel"] .disc-slot.pos-hidden-left {
       transform: translate3d(calc(-1 * var(--step-3)), 0, -240px) scale(0.32) rotateY(42deg);
       opacity: 0;
       z-index: 1;
       pointer-events: none;
     }
-    .disc-slot.pos-prev2 {
+    .carousel-stage[data-anim-mode="carousel"] .disc-slot.pos-prev2 {
       transform: translate3d(calc(-1 * var(--step-2)), 0, -140px) scale(0.46) rotateY(34deg);
       opacity: 0.28;
       z-index: 5;
     }
-    .disc-slot.pos-prev {
+    .carousel-stage[data-anim-mode="carousel"] .disc-slot.pos-prev {
       transform: translate3d(calc(-1 * var(--step-1)), 0, -65px) scale(0.69) rotateY(22deg);
       opacity: 0.66;
       z-index: 10;
     }
-    .disc-slot.pos-active {
+    .carousel-stage[data-anim-mode="carousel"] .disc-slot.pos-active {
       transform: translate3d(0, 0, 0) scale(1) rotateY(0deg);
       opacity: 1;
       z-index: 20;
     }
-    .disc-slot.pos-next {
+    .carousel-stage[data-anim-mode="carousel"] .disc-slot.pos-next {
       transform: translate3d(var(--step-1), 0, -65px) scale(0.69) rotateY(-22deg);
       opacity: 0.66;
       z-index: 10;
     }
-    .disc-slot.pos-next2 {
+    .carousel-stage[data-anim-mode="carousel"] .disc-slot.pos-next2 {
       transform: translate3d(var(--step-2), 0, -140px) scale(0.46) rotateY(-34deg);
       opacity: 0.28;
       z-index: 5;
     }
-    .disc-slot.pos-hidden-right {
+    .carousel-stage[data-anim-mode="carousel"] .disc-slot.pos-hidden-right {
       transform: translate3d(var(--step-3), 0, -240px) scale(0.32) rotateY(-42deg);
+      opacity: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* -------------------------------------------------------------------------
+       MODE 2: JUKEBOX STACKS / PILE-TO-AIR (Default in Portrait)
+       Discs lie flat in angled left/right piles and lift into the air when active
+       ------------------------------------------------------------------------- */
+    .carousel-stage[data-anim-mode="jukebox"] .disc-slot {
+      transition: transform 0.54s cubic-bezier(0.2, 1.12, 0.34, 1), opacity 0.42s ease;
+    }
+    .carousel-stage[data-anim-mode="jukebox"] .disc-slot.pos-hidden-left {
+      transform: translate3d(calc(-1 * var(--step-1) * 1.15), 62px, -110px) scale(0.56) rotateX(68deg) rotateZ(-24deg);
+      opacity: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .carousel-stage[data-anim-mode="jukebox"] .disc-slot.pos-prev2 {
+      transform: translate3d(calc(-1 * var(--step-1) * 1.08), 54px, -75px) scale(0.61) rotateX(64deg) rotateZ(-16deg);
+      opacity: 0.52;
+      z-index: 6;
+    }
+    .carousel-stage[data-anim-mode="jukebox"] .disc-slot.pos-prev {
+      transform: translate3d(calc(-1 * var(--step-1) * 1.04), 44px, -40px) scale(0.64) rotateX(60deg) rotateZ(-8deg);
+      opacity: 0.84;
+      z-index: 10;
+    }
+    .carousel-stage[data-anim-mode="jukebox"] .disc-slot.pos-active {
+      transform: translate3d(0, -10px, 28px) scale(0.96) rotateX(0deg) rotateZ(0deg);
+      opacity: 1;
+      z-index: 25;
+    }
+    .carousel-stage[data-anim-mode="jukebox"] .disc-slot.pos-next {
+      transform: translate3d(calc(var(--step-1) * 1.04), 44px, -40px) scale(0.64) rotateX(60deg) rotateZ(8deg);
+      opacity: 0.84;
+      z-index: 10;
+    }
+    .carousel-stage[data-anim-mode="jukebox"] .disc-slot.pos-next2 {
+      transform: translate3d(calc(var(--step-1) * 1.08), 54px, -75px) scale(0.61) rotateX(64deg) rotateZ(16deg);
+      opacity: 0.52;
+      z-index: 6;
+    }
+    .carousel-stage[data-anim-mode="jukebox"] .disc-slot.pos-hidden-right {
+      transform: translate3d(calc(var(--step-1) * 1.15), 62px, -110px) scale(0.56) rotateX(68deg) rotateZ(24deg);
+      opacity: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* -------------------------------------------------------------------------
+       MODE 3: CD BINDER PAGE FLIP (Book-leaf sleeve folding for order checks)
+       ------------------------------------------------------------------------- */
+    .carousel-stage[data-anim-mode="binder"] .disc-slot {
+      transition: transform 0.5s cubic-bezier(0.25, 1, 0.35, 1), opacity 0.4s ease;
+    }
+    .carousel-stage[data-anim-mode="binder"] .disc-slot.pos-hidden-left {
+      transform-origin: right center;
+      transform: translate3d(calc(-1 * var(--step-1) * 1.18), 0, -130px) scale(0.68) rotateY(84deg);
+      opacity: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .carousel-stage[data-anim-mode="binder"] .disc-slot.pos-prev2 {
+      transform-origin: right center;
+      transform: translate3d(calc(-1 * var(--step-1) * 1.06), 0, -75px) scale(0.76) rotateY(72deg);
+      opacity: 0.42;
+      z-index: 6;
+    }
+    .carousel-stage[data-anim-mode="binder"] .disc-slot.pos-prev {
+      transform-origin: right center;
+      transform: translate3d(calc(-1 * var(--step-1) * 0.92), 0, -30px) scale(0.84) rotateY(56deg);
+      opacity: 0.78;
+      z-index: 12;
+    }
+    .carousel-stage[data-anim-mode="binder"] .disc-slot.pos-active {
+      transform-origin: center center;
+      transform: translate3d(0, 0, 14px) scale(0.98) rotateY(0deg);
+      opacity: 1;
+      z-index: 25;
+    }
+    .carousel-stage[data-anim-mode="binder"] .disc-slot.pos-next {
+      transform-origin: left center;
+      transform: translate3d(calc(var(--step-1) * 0.92), 0, -30px) scale(0.84) rotateY(-56deg);
+      opacity: 0.78;
+      z-index: 12;
+    }
+    .carousel-stage[data-anim-mode="binder"] .disc-slot.pos-next2 {
+      transform-origin: left center;
+      transform: translate3d(calc(var(--step-1) * 1.06), 0, -75px) scale(0.76) rotateY(-72deg);
+      opacity: 0.42;
+      z-index: 6;
+    }
+    .carousel-stage[data-anim-mode="binder"] .disc-slot.pos-hidden-right {
+      transform-origin: left center;
+      transform: translate3d(calc(var(--step-1) * 1.18), 0, -130px) scale(0.68) rotateY(-84deg);
       opacity: 0;
       z-index: 1;
       pointer-events: none;
@@ -299,61 +397,61 @@
 
       <!-- 3D CD Carousel Section (Top in Portrait, Expanded 60% Right Pane in Landscape) -->
       <section id="carouselColumn" class="bg-gradient-to-b from-skoda-panel to-skoda-bg border-b border-skoda-border px-3 py-2.5">
-        <div class="flex items-center justify-between text-[10px] font-mono text-slate-400 shrink-0">
-          <span>← SWIPE SLEEVES →</span>
+        <div class="flex items-center justify-between text-[10px] font-mono text-slate-400 shrink-0 relative z-30">
+          <!-- Text-Free Graphic Animation Mode Switcher (Top-Left of Stage) -->
+          <div id="animModeSwitcher" class="relative">
+            <button id="animModeBtn" type="button" aria-label="Switch Disc Animation Mode" title="Switch Disc Animation Mode" aria-expanded="false"
+              class="h-7 px-2 rounded-lg bg-[#111714]/95 hover:bg-skoda-card border border-[#233029] text-skoda-glow flex items-center gap-1.5 shadow-md active:scale-95 transition">
+              <span id="animModeCurrentIcon" class="flex items-center justify-center"></span>
+              <svg class="w-2.5 h-2.5 text-slate-400" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 4.5L6 7.5L9 4.5"/>
+              </svg>
+            </button>
+
+            <!-- Compact Icon-Only Dropdown List -->
+            <div id="animModeMenu" role="menu" aria-label="Animation Modes"
+              class="hidden absolute left-0 top-full mt-1.5 p-1 rounded-xl bg-[#111714]/95 backdrop-blur-md border border-[#233029] shadow-2xl flex-col gap-1 z-40">
+              <button type="button" role="menuitem" data-mode="carousel" aria-label="Panoramic Carousel Mode" title="Panoramic Carousel Mode"
+                class="anim-mode-option w-9 h-8 rounded-lg flex items-center justify-center border border-transparent text-slate-400 hover:text-white hover:bg-skoda-card transition">
+                <!-- Carousel Graphic: Large center disc flanked by two side discs -->
+                <svg class="w-6 h-4" viewBox="0 0 28 18" fill="none">
+                  <circle cx="6" cy="9" r="4.2" stroke="currentColor" stroke-width="1.5" opacity="0.65"/>
+                  <circle cx="22" cy="9" r="4.2" stroke="currentColor" stroke-width="1.5" opacity="0.65"/>
+                  <circle cx="14" cy="9" r="6.4" fill="#111714" stroke="currentColor" stroke-width="1.8"/>
+                  <circle cx="14" cy="9" r="1.8" stroke="currentColor" stroke-width="1.3"/>
+                </svg>
+              </button>
+
+              <button type="button" role="menuitem" data-mode="jukebox" aria-label="Jukebox Stacks Mode" title="Jukebox Stacks Mode"
+                class="anim-mode-option w-9 h-8 rounded-lg flex items-center justify-center border border-transparent text-slate-400 hover:text-white hover:bg-skoda-card transition">
+                <!-- Jukebox Graphic: Left/right flat piles + lifted upright center disc -->
+                <svg class="w-6 h-4" viewBox="0 0 28 18" fill="none">
+                  <ellipse cx="5.2" cy="14.5" rx="3.8" ry="1.3" stroke="currentColor" stroke-width="1.3" opacity="0.65"/>
+                  <ellipse cx="5.2" cy="12.3" rx="3.8" ry="1.3" stroke="currentColor" stroke-width="1.3" opacity="0.85"/>
+                  <ellipse cx="22.8" cy="14.5" rx="3.8" ry="1.3" stroke="currentColor" stroke-width="1.3" opacity="0.65"/>
+                  <ellipse cx="22.8" cy="12.3" rx="3.8" ry="1.3" stroke="currentColor" stroke-width="1.3" opacity="0.85"/>
+                  <circle cx="14" cy="6.8" r="5.3" fill="#111714" stroke="currentColor" stroke-width="1.8"/>
+                  <circle cx="14" cy="6.8" r="1.5" stroke="currentColor" stroke-width="1.3"/>
+                </svg>
+              </button>
+
+              <button type="button" role="menuitem" data-mode="binder" aria-label="CD Binder Page Flip Mode" title="CD Binder Page Flip Mode"
+                class="anim-mode-option w-9 h-8 rounded-lg flex items-center justify-center border border-transparent text-slate-400 hover:text-white hover:bg-skoda-card transition">
+                <!-- Binder Graphic: Hinged left/right angled book sleeves + center face-on sleeve -->
+                <svg class="w-6 h-4" viewBox="0 0 28 18" fill="none">
+                  <path d="M3.5 4.2L8.5 2.6V15.4L3.5 13.8V4.2Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" opacity="0.72"/>
+                  <path d="M24.5 4.2L19.5 2.6V15.4L24.5 13.8V4.2Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" opacity="0.72"/>
+                  <rect x="9.5" y="2.2" width="9" height="13.6" rx="1.5" fill="#111714" stroke="currentColor" stroke-width="1.7"/>
+                  <circle cx="14" cy="9" r="2.6" stroke="currentColor" stroke-width="1.3"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
           <span id="sleeveCounter" class="text-skoda-glow font-semibold">SLEEVE 1 / 16</span>
         </div>
 
-        <div id="carouselStage" class="carousel-stage relative h-52 sm:h-60 w-full flex items-center justify-center overflow-hidden my-1"></div>
-
-        <!-- Controls & Scrollable Quick-Select Pills -->
-        <div class="flex items-center gap-2 shrink-0">
-          <button id="prevDiscBtn" type="button" aria-label="Previous CD"
-            class="w-9 h-9 rounded-xl bg-skoda-card hover:bg-skoda-border border border-skoda-border flex items-center justify-center text-white shrink-0 active:scale-90 transition">
-            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg>
-          </button>
-
-          <div id="discTabs" class="flex-1 flex items-center gap-1 bg-skoda-panel p-1 rounded-xl border border-skoda-border/80 overflow-x-auto no-scrollbar"></div>
-
-          <button id="nextDiscBtn" type="button" aria-label="Next CD"
-            class="w-9 h-9 rounded-xl bg-skoda-card hover:bg-skoda-border border border-skoda-border flex items-center justify-center text-white shrink-0 active:scale-90 transition">
-            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 18l6-6-6-6"/></svg>
-          </button>
-        </div>
-      </section>
-
-      <!-- Tracklist & Search Section (Bottom in Portrait, 40% Left Pane in Landscape) -->
-      <section id="tracklistColumn" class="flex-1 flex flex-col min-h-0">
-        <!-- Search & Active Disc Header -->
-        <div class="p-3 bg-skoda-bg/95 border-b border-skoda-border space-y-2 shrink-0">
-          <div class="relative">
-            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
-            </svg>
-            <input id="searchInput" type="search" placeholder="Search song or artist across all 16 discs..."
-              class="w-full bg-skoda-card border border-skoda-border focus:border-skoda-green rounded-xl pl-9 pr-8 py-2 text-xs text-white placeholder-slate-500 outline-none transition" />
-            <button id="clearSearchBtn" type="button" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs px-1">✕</button>
-          </div>
-
-          <div id="activeDiscHeader" class="flex items-center justify-between gap-2">
-            <div class="min-w-0">
-              <div class="flex items-center gap-1.5">
-                <span id="activeDiscBadge" class="px-1.5 py-0.5 rounded bg-skoda-green/20 border border-skoda-green/40 text-skoda-glow font-mono text-[10px] font-bold shrink-0">DISC 01</span>
-                <h2 id="activeDiscTitle" class="text-xs sm:text-sm font-bold text-white truncate">DJ Sebi — Locul tau in inima mea</h2>
-              </div>
-              <p id="activeDiscSubtitle" class="text-[11px] text-slate-400 mt-0.5 truncate">Pressed Audio CD • Total Studio (10 tracks)</p>
-            </div>
-
-            <div class="flex items-center gap-1.5 shrink-0">
-              <a id="openPlaylistBtn" href="#" target="_blank" rel="noopener noreferrer"
-                class="playlist-link hidden px-2.5 py-1.5 rounded-lg bg-red-500/15 hover:bg-red-500/25 border border-red-500/40 text-[10px] font-semibold text-red-300 items-center gap-1 active:scale-95 transition">
-                <span>Open YT Playlist ↗</span>
-              </a>
-              <button id="copyLinkBtn" type="button"
-                class="px-2 py-1.5 rounded-lg bg-skoda-card hover:bg-skoda-border border border-skoda-border text-[10px] font-mono text-slate-300 active:scale-95 transition">
-                Share
-              </button>
-            </div>
+        <div id="carouselStage" data-anim-mode="carousel" class="carousel-stage relative h-52 sm:h-60 w-full flex items-center justify-center overflow-hidden my-1"></div>
           </div>
         </div>
 
@@ -1842,6 +1940,7 @@
 
   <script>
     const STORAGE_KEY = "octavia_cd_binder_v18_clean";
+    const ANIM_MODE_STORAGE_KEY = "skotavia_anim_mode_manual";
     let DEFAULT_DISCS = [];
     try {
       DEFAULT_DISCS = JSON.parse(document.getElementById("disc-data").textContent);
@@ -1900,6 +1999,94 @@
     const toastEl = document.getElementById("toast");
     const openImportBtn = document.getElementById("openImportBtn");
     const importModal = document.getElementById("importModal");
+    const animModeBtn = document.getElementById("animModeBtn");
+    const animModeMenu = document.getElementById("animModeMenu");
+    const animModeCurrentIcon = document.getElementById("animModeCurrentIcon");
+    const animModeOptionEls = Array.from(document.querySelectorAll(".anim-mode-option"));
+
+    const ANIM_MODE_ICONS = {
+      carousel: `<svg class="w-5 h-3.5" viewBox="0 0 28 18" fill="none"><circle cx="6" cy="9" r="4.2" stroke="currentColor" stroke-width="1.5" opacity="0.65"/><circle cx="22" cy="9" r="4.2" stroke="currentColor" stroke-width="1.5" opacity="0.65"/><circle cx="14" cy="9" r="6.4" fill="#111714" stroke="currentColor" stroke-width="1.8"/><circle cx="14" cy="9" r="1.8" stroke="currentColor" stroke-width="1.3"/></svg>`,
+      jukebox: `<svg class="w-5 h-3.5" viewBox="0 0 28 18" fill="none"><ellipse cx="5.2" cy="14.5" rx="3.8" ry="1.3" stroke="currentColor" stroke-width="1.3" opacity="0.65"/><ellipse cx="5.2" cy="12.3" rx="3.8" ry="1.3" stroke="currentColor" stroke-width="1.3" opacity="0.85"/><ellipse cx="22.8" cy="14.5" rx="3.8" ry="1.3" stroke="currentColor" stroke-width="1.3" opacity="0.65"/><ellipse cx="22.8" cy="12.3" rx="3.8" ry="1.3" stroke="currentColor" stroke-width="1.3" opacity="0.85"/><circle cx="14" cy="6.8" r="5.3" fill="#111714" stroke="currentColor" stroke-width="1.8"/><circle cx="14" cy="6.8" r="1.5" stroke="currentColor" stroke-width="1.3"/></svg>`,
+      binder: `<svg class="w-5 h-3.5" viewBox="0 0 28 18" fill="none"><path d="M3.5 4.2L8.5 2.6V15.4L3.5 13.8V4.2Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" opacity="0.72"/><path d="M24.5 4.2L19.5 2.6V15.4L24.5 13.8V4.2Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" opacity="0.72"/><rect x="9.5" y="2.2" width="9" height="13.6" rx="1.5" fill="#111714" stroke="currentColor" stroke-width="1.7"/><circle cx="14" cy="9" r="2.6" stroke="currentColor" stroke-width="1.3"/></svg>`
+    };
+
+    function getOrientationDefaultAnimMode() {
+      return window.innerWidth > window.innerHeight ? "carousel" : "jukebox";
+    }
+
+    function applyAnimationMode(mode, isManual = false) {
+      const validModes = ["carousel", "jukebox", "binder"];
+      const resolved = validModes.includes(mode) ? mode : getOrientationDefaultAnimMode();
+      stageEl.setAttribute("data-anim-mode", resolved);
+      if (animModeCurrentIcon) animModeCurrentIcon.innerHTML = ANIM_MODE_ICONS[resolved];
+
+      animModeOptionEls.forEach(btn => {
+        const isSelected = btn.dataset.mode === resolved;
+        btn.classList.toggle("text-skoda-glow", isSelected);
+        btn.classList.toggle("bg-skoda-green/15", isSelected);
+        btn.classList.toggle("border-skoda-green/50", isSelected);
+        btn.classList.toggle("text-slate-400", !isSelected);
+        btn.classList.toggle("border-transparent", !isSelected);
+      });
+
+      if (isManual) {
+        try { localStorage.setItem(ANIM_MODE_STORAGE_KEY, resolved); } catch (_) {}
+      }
+    }
+
+    function syncAnimationModeWithOrientation() {
+      let manualMode = null;
+      try { manualMode = localStorage.getItem(ANIM_MODE_STORAGE_KEY); } catch (_) {}
+      if (manualMode && ["carousel", "jukebox", "binder"].includes(manualMode)) {
+        applyAnimationMode(manualMode, false);
+      } else {
+        applyAnimationMode(getOrientationDefaultAnimMode(), false);
+      }
+    }
+
+    function closeAnimModeMenu() {
+      if (!animModeMenu) return;
+      animModeMenu.classList.add("hidden");
+      animModeMenu.classList.remove("flex");
+      if (animModeBtn) animModeBtn.setAttribute("aria-expanded", "false");
+    }
+
+    if (animModeBtn && animModeMenu) {
+      animModeBtn.addEventListener("click", e => {
+        e.stopPropagation();
+        const isHidden = animModeMenu.classList.contains("hidden");
+        if (isHidden) {
+          animModeMenu.classList.remove("hidden");
+          animModeMenu.classList.add("flex");
+          animModeBtn.setAttribute("aria-expanded", "true");
+        } else {
+          closeAnimModeMenu();
+        }
+      });
+
+      // Double-tap resets sticky manual override back to automatic orientation mode
+      animModeBtn.addEventListener("dblclick", e => {
+        e.stopPropagation();
+        try { localStorage.removeItem(ANIM_MODE_STORAGE_KEY); } catch (_) {}
+        syncAnimationModeWithOrientation();
+        closeAnimModeMenu();
+        showToast("Auto orientation animation restored");
+      });
+
+      animModeOptionEls.forEach(btn => {
+        btn.addEventListener("click", e => {
+          e.stopPropagation();
+          applyAnimationMode(btn.dataset.mode, true);
+          closeAnimModeMenu();
+        });
+      });
+
+      document.addEventListener("click", e => {
+        if (!animModeMenu.classList.contains("hidden") && !document.getElementById("animModeSwitcher").contains(e.target)) {
+          closeAnimModeMenu();
+        }
+      });
+    }
 
     // Public Read-Only Mode vs. Hidden #admin Toggle
     function syncAdminMode() {
@@ -2365,14 +2552,19 @@
     });
 
     window.addEventListener("resize", () => {
+      syncAnimationModeWithOrientation();
       applyTrackMarquees(searchQuery.trim() ? globalResultsEl : trackContainerEl);
     });
     window.addEventListener("orientationchange", () => {
-      setTimeout(() => applyTrackMarquees(searchQuery.trim() ? globalResultsEl : trackContainerEl), 120);
+      setTimeout(() => {
+        syncAnimationModeWithOrientation();
+        applyTrackMarquees(searchQuery.trim() ? globalResultsEl : trackContainerEl);
+      }, 120);
     });
 
     window.addEventListener("DOMContentLoaded", () => {
       syncAdminMode();
+      syncAnimationModeWithOrientation();
       buildCarouselDom();
       const params = new URLSearchParams(window.location.search);
       const discParam = parseInt(params.get("disc"), 10);
