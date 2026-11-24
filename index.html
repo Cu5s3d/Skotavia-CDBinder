@@ -8,12 +8,12 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="theme-color" content="#050706" />
 
-  <!-- Static Web App Manifest & Icons for native Chrome WebAPK & iOS Home Screen installation -->
+  <!-- Static PWA Manifest & Icons -->
   <link rel="manifest" href="./manifest.json" />
   <link rel="icon" type="image/png" href="./icon.png" />
-  <link rel="apple-touch-icon" sizes="180x180" href="./icon.png" />
+  <link rel="apple-touch-icon" href="./icon.png" />
 
-  <title>Škotavia MP3 Binder • Škoda Swing</title>
+  <title>Škotavia CDB • Octavia MP3 Binder</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
   <script>
@@ -21,31 +21,45 @@
       theme: {
         extend: {
           fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
-          colors: { skoda: { bg: '#050706', panel: '#0d1210', card: '#131b19', border: '#1f2e2a', green: '#4ba82e', glow: '#68d348' } }
+          colors: {
+            skoda: {
+              bg: '#050706',
+              panel: '#0d1210',
+              card: '#111714',
+              border: '#233029',
+              green: '#22c55e',
+              glow: '#4ade80'
+            }
+          }
         }
       }
     };
   </script>
   <style>
     * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
-    html, body { background-color: #050706; color: #e2e8f0; overscroll-behavior-y: none; touch-action: manipulation; }
+    html, body {
+      background-color: #050706;
+      color: #e2e8f0;
+      overscroll-behavior-y: none;
+      touch-action: manipulation;
+    }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: #0d1210; }
-    ::-webkit-scrollbar-thumb { background: #263833; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb { background: #233029; border-radius: 9999px; }
 
     /* =========================================================================
-       3D CAROUSEL STAGE & PERSISTENT DISC SLOTS (Smooth Glide + Continuous Spin)
+       3D CD STAGE & 3 VIEW MODES (CAROUSEL, JUKEBOX STACKS, BINDER BOOK)
        ========================================================================= */
     .carousel-stage {
       perspective: 1200px;
       transform-style: preserve-3d;
       touch-action: pan-y;
-      --disc-size: 184px;
-      --step-1: 134px;
-      --step-2: 224px;
-      --step-3: 295px;
+      --disc-size: 188px;
+      --step-1: 136px;
+      --step-2: 226px;
+      --step-3: 298px;
     }
 
     .disc-slot {
@@ -55,165 +69,319 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: transform 0.46s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.42s ease;
+      transition: transform 0.48s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.42s ease;
       will-change: transform, opacity;
       user-select: none;
       cursor: pointer;
     }
 
-    /* -------------------------------------------------------------------------
-       MODE 1: PANORAMIC CAROUSEL (Default in Landscape)
-       ------------------------------------------------------------------------- */
-    .carousel-stage[data-anim-mode="carousel"] .disc-slot.pos-hidden-left {
+    /* MODE 1: PANORAMIC CAROUSEL (Default in Landscape) */
+    .carousel-stage[data-view-mode="carousel"] .disc-slot.pos-hidden-left {
       transform: translate3d(calc(-1 * var(--step-3)), 0, -240px) scale(0.32) rotateY(42deg);
       opacity: 0;
       z-index: 1;
       pointer-events: none;
     }
-    .carousel-stage[data-anim-mode="carousel"] .disc-slot.pos-prev2 {
+    .carousel-stage[data-view-mode="carousel"] .disc-slot.pos-prev2 {
       transform: translate3d(calc(-1 * var(--step-2)), 0, -140px) scale(0.46) rotateY(34deg);
       opacity: 0.28;
       z-index: 5;
     }
-    .carousel-stage[data-anim-mode="carousel"] .disc-slot.pos-prev {
+    .carousel-stage[data-view-mode="carousel"] .disc-slot.pos-prev {
       transform: translate3d(calc(-1 * var(--step-1)), 0, -65px) scale(0.69) rotateY(22deg);
-      opacity: 0.66;
+      opacity: 0.68;
       z-index: 10;
     }
-    .carousel-stage[data-anim-mode="carousel"] .disc-slot.pos-active {
+    .carousel-stage[data-view-mode="carousel"] .disc-slot.pos-active {
       transform: translate3d(0, 0, 0) scale(1) rotateY(0deg);
       opacity: 1;
       z-index: 20;
     }
-    .carousel-stage[data-anim-mode="carousel"] .disc-slot.pos-next {
+    .carousel-stage[data-view-mode="carousel"] .disc-slot.pos-next {
       transform: translate3d(var(--step-1), 0, -65px) scale(0.69) rotateY(-22deg);
-      opacity: 0.66;
+      opacity: 0.68;
       z-index: 10;
     }
-    .carousel-stage[data-anim-mode="carousel"] .disc-slot.pos-next2 {
+    .carousel-stage[data-view-mode="carousel"] .disc-slot.pos-next2 {
       transform: translate3d(var(--step-2), 0, -140px) scale(0.46) rotateY(-34deg);
       opacity: 0.28;
       z-index: 5;
     }
-    .carousel-stage[data-anim-mode="carousel"] .disc-slot.pos-hidden-right {
+    .carousel-stage[data-view-mode="carousel"] .disc-slot.pos-hidden-right {
       transform: translate3d(var(--step-3), 0, -240px) scale(0.32) rotateY(-42deg);
       opacity: 0;
       z-index: 1;
       pointer-events: none;
     }
 
-    /* -------------------------------------------------------------------------
-       MODE 2: JUKEBOX STACKS / PILE-TO-AIR (Default in Portrait)
-       Discs lie flat in angled left/right piles and lift into the air when active
-       ------------------------------------------------------------------------- */
-    .carousel-stage[data-anim-mode="jukebox"] .disc-slot {
+    /* MODE 2: JUKEBOX STACKS (Default in Portrait) */
+    .carousel-stage[data-view-mode="jukebox"] .disc-slot {
       transition: transform 0.54s cubic-bezier(0.2, 1.12, 0.34, 1), opacity 0.42s ease;
     }
-    .carousel-stage[data-anim-mode="jukebox"] .disc-slot.pos-hidden-left {
+    .carousel-stage[data-view-mode="jukebox"] .disc-slot.pos-hidden-left {
       transform: translate3d(calc(-1 * var(--step-1) * 1.15), 62px, -110px) scale(0.56) rotateX(68deg) rotateZ(-24deg);
       opacity: 0;
       z-index: 1;
       pointer-events: none;
     }
-    .carousel-stage[data-anim-mode="jukebox"] .disc-slot.pos-prev2 {
+    .carousel-stage[data-view-mode="jukebox"] .disc-slot.pos-prev2 {
       transform: translate3d(calc(-1 * var(--step-1) * 1.08), 54px, -75px) scale(0.61) rotateX(64deg) rotateZ(-16deg);
       opacity: 0.52;
       z-index: 6;
     }
-    .carousel-stage[data-anim-mode="jukebox"] .disc-slot.pos-prev {
+    .carousel-stage[data-view-mode="jukebox"] .disc-slot.pos-prev {
       transform: translate3d(calc(-1 * var(--step-1) * 1.04), 44px, -40px) scale(0.64) rotateX(60deg) rotateZ(-8deg);
-      opacity: 0.84;
+      opacity: 0.85;
       z-index: 10;
     }
-    .carousel-stage[data-anim-mode="jukebox"] .disc-slot.pos-active {
+    .carousel-stage[data-view-mode="jukebox"] .disc-slot.pos-active {
       transform: translate3d(0, -10px, 28px) scale(0.96) rotateX(0deg) rotateZ(0deg);
       opacity: 1;
       z-index: 25;
     }
-    .carousel-stage[data-anim-mode="jukebox"] .disc-slot.pos-next {
+    .carousel-stage[data-view-mode="jukebox"] .disc-slot.pos-next {
       transform: translate3d(calc(var(--step-1) * 1.04), 44px, -40px) scale(0.64) rotateX(60deg) rotateZ(8deg);
-      opacity: 0.84;
+      opacity: 0.85;
       z-index: 10;
     }
-    .carousel-stage[data-anim-mode="jukebox"] .disc-slot.pos-next2 {
+    .carousel-stage[data-view-mode="jukebox"] .disc-slot.pos-next2 {
       transform: translate3d(calc(var(--step-1) * 1.08), 54px, -75px) scale(0.61) rotateX(64deg) rotateZ(16deg);
       opacity: 0.52;
       z-index: 6;
     }
-    .carousel-stage[data-anim-mode="jukebox"] .disc-slot.pos-hidden-right {
+    .carousel-stage[data-view-mode="jukebox"] .disc-slot.pos-hidden-right {
       transform: translate3d(calc(var(--step-1) * 1.15), 62px, -110px) scale(0.56) rotateX(68deg) rotateZ(24deg);
       opacity: 0;
       z-index: 1;
       pointer-events: none;
     }
 
-    /* -------------------------------------------------------------------------
-       MODE 3: CD BINDER PAGE FLIP (Book-leaf sleeve folding for order checks)
-       ------------------------------------------------------------------------- */
-    .carousel-stage[data-anim-mode="binder"] .disc-slot {
-      transition: transform 0.5s cubic-bezier(0.25, 1, 0.35, 1), opacity 0.4s ease;
+    /* MODE 3: REALISTIC 2-UP CD BINDER BOOK SPREAD WITH 3D SPINE PAGE TURNS */
+    .carousel-stage[data-view-mode="binder"] .disc-slot {
+      display: none !important;
     }
-    .carousel-stage[data-anim-mode="binder"] .disc-slot.pos-hidden-left {
-      transform-origin: right center;
-      transform: translate3d(calc(-1 * var(--step-1) * 1.18), 0, -130px) scale(0.68) rotateY(84deg);
-      opacity: 0;
-      z-index: 1;
+
+    .binder-book-wrapper {
+      display: none;
+      width: 100%;
+      height: 100%;
+      align-items: center;
+      justify-content: center;
+      padding: 0.25rem 0.5rem;
+      perspective: 1500px;
+    }
+
+    .carousel-stage[data-view-mode="binder"] .binder-book-wrapper {
+      display: flex;
+    }
+
+    .binder-book {
+      position: relative;
+      width: min(96%, 430px);
+      height: min(94%, 212px);
+      transform-style: preserve-3d;
+      display: flex;
+      border-radius: 14px;
+      box-shadow: 0 22px 44px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(35, 48, 41, 0.9);
+      background: #080b09;
+    }
+
+    .binder-spine {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 14px;
+      transform: translateX(-50%) translateZ(24px);
+      z-index: 60;
       pointer-events: none;
+      background: linear-gradient(
+        90deg,
+        rgba(0, 0, 0, 0.85) 0%,
+        rgba(34, 197, 94, 0.14) 35%,
+        rgba(255, 255, 255, 0.08) 50%,
+        rgba(34, 197, 94, 0.14) 65%,
+        rgba(0, 0, 0, 0.85) 100%
+      );
+      border-left: 1px solid rgba(255, 255, 255, 0.06);
+      border-right: 1px solid rgba(255, 255, 255, 0.06);
     }
-    .carousel-stage[data-anim-mode="binder"] .disc-slot.pos-prev2 {
-      transform-origin: right center;
-      transform: translate3d(calc(-1 * var(--step-1) * 1.06), 0, -75px) scale(0.76) rotateY(72deg);
-      opacity: 0.42;
-      z-index: 6;
+
+    .binder-cover-base {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at center, #0e1411 0%, #070a08 100%);
+      border: 1px solid #1b2620;
+      overflow: hidden;
     }
-    .carousel-stage[data-anim-mode="binder"] .disc-slot.pos-prev {
-      transform-origin: right center;
-      transform: translate3d(calc(-1 * var(--step-1) * 0.92), 0, -30px) scale(0.84) rotateY(56deg);
-      opacity: 0.78;
-      z-index: 12;
+
+    .binder-cover-base.left-cover {
+      left: 0;
+      border-radius: 14px 0 0 14px;
+      border-right: none;
     }
-    .carousel-stage[data-anim-mode="binder"] .disc-slot.pos-active {
-      transform-origin: center center;
-      transform: translate3d(0, 0, 14px) scale(0.98) rotateY(0deg);
-      opacity: 1;
-      z-index: 25;
+
+    .binder-cover-base.right-cover {
+      right: 0;
+      border-radius: 0 14px 14px 0;
+      border-left: none;
     }
-    .carousel-stage[data-anim-mode="binder"] .disc-slot.pos-next {
+
+    .binder-cover-pocket {
+      width: 82%;
+      height: 82%;
+      border-radius: 12px;
+      border: 1px dashed rgba(74, 222, 128, 0.16);
+      background: repeating-linear-gradient(
+        -45deg,
+        rgba(255, 255, 255, 0.015),
+        rgba(255, 255, 255, 0.015) 6px,
+        transparent 6px,
+        transparent 12px
+      );
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      color: rgba(148, 163, 184, 0.35);
+      user-select: none;
+    }
+
+    .binder-leaf {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 50%;
+      height: 100%;
       transform-origin: left center;
-      transform: translate3d(calc(var(--step-1) * 0.92), 0, -30px) scale(0.84) rotateY(-56deg);
-      opacity: 0.78;
-      z-index: 12;
+      transform-style: preserve-3d;
+      transition: transform 0.62s cubic-bezier(0.28, 0.88, 0.32, 1);
+      will-change: transform;
+      cursor: pointer;
     }
-    .carousel-stage[data-anim-mode="binder"] .disc-slot.pos-next2 {
-      transform-origin: left center;
-      transform: translate3d(calc(var(--step-1) * 1.06), 0, -75px) scale(0.76) rotateY(-72deg);
-      opacity: 0.42;
-      z-index: 6;
+
+    .binder-leaf.is-flipped {
+      transform: rotateY(-180deg);
     }
-    .carousel-stage[data-anim-mode="binder"] .disc-slot.pos-hidden-right {
-      transform-origin: left center;
-      transform: translate3d(calc(var(--step-1) * 1.18), 0, -130px) scale(0.68) rotateY(-84deg);
-      opacity: 0;
-      z-index: 1;
+
+    .binder-face {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0d1310 0%, #090d0b 100%);
+      border: 1px solid #222f28;
+      overflow: hidden;
+    }
+
+    .binder-face.front-face {
+      border-radius: 0 14px 14px 0;
+      border-left: none;
+      box-shadow: inset 12px 0 20px -12px rgba(0, 0, 0, 0.9);
+    }
+
+    .binder-face.back-face {
+      transform: rotateY(180deg);
+      border-radius: 14px 0 0 14px;
+      border-right: none;
+      box-shadow: inset -12px 0 20px -12px rgba(0, 0, 0, 0.9);
+    }
+
+    .binder-sleeve-pocket {
+      position: relative;
+      width: min(84%, 168px);
+      aspect-ratio: 1 / 1;
+      border-radius: 16px;
+      padding: 8px;
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.045) 0%, rgba(17, 23, 20, 0.65) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.11);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 8px 18px rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+    }
+
+    .binder-sleeve-pocket::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 16px;
+      pointer-events: none;
+      z-index: 15;
+      background: linear-gradient(125deg, rgba(255, 255, 255, 0.12) 0%, transparent 42%, rgba(34, 197, 94, 0.05) 100%);
+    }
+
+    .binder-sleeve-pocket.is-selected-disc {
+      border-color: rgba(74, 222, 128, 0.85);
+      box-shadow: 0 0 22px rgba(34, 197, 94, 0.34), inset 0 0 0 1px rgba(74, 222, 128, 0.45);
+      transform: scale(1.03);
+    }
+
+    .binder-sleeve-pocket .cd-disc {
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.75), inset 0 0 0 1.5px rgba(255, 255, 255, 0.15);
+    }
+
+    .binder-sleeve-pocket.is-selected-disc .disc-rotor {
+      animation: discSpin 18s linear infinite;
+    }
+
+    .binder-slot-tag {
+      position: absolute;
+      top: 5px;
+      left: 7px;
+      z-index: 20;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 5px;
+      background: rgba(5, 7, 6, 0.78);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #94a3b8;
       pointer-events: none;
     }
 
+    .binder-sleeve-pocket.is-selected-disc .binder-slot-tag {
+      color: #4ade80;
+      border-color: rgba(74, 222, 128, 0.5);
+    }
+
+    @media (min-width: 768px) and (orientation: landscape) {
+      .binder-book {
+        width: min(94%, 520px);
+        height: min(90%, 268px);
+      }
+      .binder-sleeve-pocket {
+        width: min(84%, 212px);
+      }
+    }
+
+    /* Disc Surface, Spin Rotor, & Crisp Two-Line Typography */
     .cd-disc {
       width: 100%;
       height: 100%;
       border-radius: 50%;
       position: relative;
       overflow: hidden;
-      background: conic-gradient(from 40deg, #16241f 0deg, #27443a 45deg, #121a18 90deg, #325e4d 140deg, #16241f 195deg, #2c5243 250deg, #121a18 310deg, #16241f 360deg);
-      box-shadow: 0 20px 38px rgba(0, 0, 0, 0.78), inset 0 0 0 2px rgba(255, 255, 255, 0.14);
+      background: conic-gradient(from 40deg, #16241f 0deg, #27443a 45deg, #111714 90deg, #325e4d 140deg, #16241f 195deg, #2c5243 250deg, #111714 310deg, #16241f 360deg);
+      box-shadow: 0 20px 38px rgba(0, 0, 0, 0.8), inset 0 0 0 2px rgba(255, 255, 255, 0.14);
       transition: box-shadow 0.42s ease;
     }
 
     .disc-slot.pos-active .cd-disc {
-      box-shadow: 0 22px 46px rgba(0, 0, 0, 0.88), 0 0 28px rgba(75, 168, 46, 0.36), inset 0 0 0 2px rgba(104, 211, 72, 0.5);
+      box-shadow: 0 22px 46px rgba(0, 0, 0, 0.9), 0 0 28px rgba(34, 197, 94, 0.34), inset 0 0 0 2px rgba(74, 222, 128, 0.48);
     }
 
-    /* Isolated Rotor Layer: Spins continuously ONLY on the active disc */
     @keyframes discSpin {
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
@@ -244,29 +412,27 @@
       background: radial-gradient(circle at 35% 35%, #5b5239 0%, #3a3423 55%, #1e1b13 100%);
     }
 
-    /* Crisp shadow-only typography directly over the silver CD surface (no dark pill box) */
     .disc-face-playlist {
       text-shadow:
         0 1px 2px rgba(0, 0, 0, 0.98),
-        0 2px 6px rgba(0, 0, 0, 0.92),
-        0 0 10px rgba(0, 0, 0, 0.78);
+        0 2px 6px rgba(0, 0, 0, 0.94),
+        0 0 10px rgba(0, 0, 0, 0.8);
     }
 
     .disc-face-volume {
       text-shadow:
         0 1px 2px rgba(0, 0, 0, 0.98),
         0 2px 5px rgba(0, 0, 0, 0.94),
-        0 0 8px rgba(5, 7, 6, 0.85);
+        0 0 8px rgba(5, 7, 6, 0.88);
     }
 
-    /* Stationary Optical Sheen & Center Spindle Hub */
     .cd-sheen {
       position: absolute;
       inset: 0;
       border-radius: 50%;
       pointer-events: none;
       z-index: 5;
-      background: linear-gradient(125deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.02) 36%, transparent 55%, rgba(104,211,72,0.12) 100%);
+      background: linear-gradient(125deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.02) 36%, transparent 55%, rgba(34,197,94,0.12) 100%);
     }
 
     .cd-hub {
@@ -279,13 +445,11 @@
       border-radius: 50%;
       z-index: 6;
       pointer-events: none;
-      background: radial-gradient(circle, #050706 35%, rgba(220,235,230,0.24) 37%, rgba(18,26,24,0.88) 68%, rgba(255,255,255,0.28) 70%, transparent 74%);
-      box-shadow: inset 0 0 8px rgba(0,0,0,0.88);
+      background: radial-gradient(circle, #050706 35%, rgba(220,235,230,0.24) 37%, rgba(17,23,20,0.9) 68%, rgba(255,255,255,0.28) 70%, transparent 74%);
+      box-shadow: inset 0 0 8px rgba(0,0,0,0.9);
     }
 
-    /* =========================================================================
-       AUTO SIDE-SCROLLING MARQUEE FOR LONG TRACK TITLES
-       ========================================================================= */
+    /* Auto Side-Scrolling Marquee for Long Track Titles */
     .track-title-viewport {
       flex: 1;
       min-width: 0;
@@ -294,96 +458,127 @@
       mask-image: linear-gradient(to right, #000 0%, #000 94%, transparent 100%);
       -webkit-mask-image: linear-gradient(to right, #000 0%, #000 94%, transparent 100%);
     }
-
     .track-title-viewport.no-fade {
       mask-image: none;
       -webkit-mask-image: none;
     }
-
     .track-title-scroll {
       display: inline-block;
       white-space: nowrap;
       will-change: transform;
     }
-
     @keyframes trackMarquee {
       0%, 18% { transform: translateX(0); }
       52%, 68% { transform: translateX(calc(-1 * var(--scroll-dist, 0px))); }
       95%, 100% { transform: translateX(0); }
     }
-
     .track-title-scroll.is-overflowing {
       animation: trackMarquee var(--scroll-dur, 7s) ease-in-out infinite;
     }
 
-    .yt-link, .playlist-link { touch-action: manipulation; cursor: pointer; }
-
     /* =========================================================================
-       EXPANDED CAROUSEL LANDSCAPE MODE (40% Tracklist / 60% Disc Stage)
+       LANDSCAPE SPLIT (60% Left CD Stage / 40% Right Tracklist & Search)
        ========================================================================= */
-    @media (orientation: landscape) and (max-height: 580px) {
+    @media (min-width: 768px) and (orientation: landscape) {
       body { height: 100dvh; overflow: hidden; }
       #appShell { height: 100dvh; max-width: 100%; display: flex; flex-direction: column; overflow: hidden; }
-      #landscapeWorkspace { flex: 1; min-height: 0; display: grid; grid-template-columns: 40% 60%; overflow: hidden; }
-      #tracklistColumn { order: 1; height: 100%; display: flex; flex-direction: column; border-right: 1px solid #1f2e2a; overflow: hidden; }
-      #tracklistScrollArea { flex: 1; overflow-y: auto; padding-bottom: 1rem; }
-      #carouselColumn { order: 2; height: 100%; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; border-bottom: none; padding: 0.5rem 0.75rem; }
+      #landscapeWorkspace { flex: 1; min-height: 0; display: grid; grid-template-columns: 60% 40%; overflow: hidden; }
+      #carouselColumn {
+        order: 1;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        overflow: hidden;
+        border-bottom: none;
+        border-right: 1px solid #233029;
+        padding: 0.65rem 0.9rem;
+      }
+      #tracklistColumn {
+        order: 2;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      #tracklistScrollArea { flex: 1; overflow-y: auto; padding-bottom: 1.5rem; }
       #carouselStage {
         flex: 1;
         height: auto !important;
         min-height: 0;
-        --disc-size: clamp(205px, 54vh, 285px);
-        --step-1: clamp(148px, 37vh, 200px);
-        --step-2: clamp(240px, 58vh, 320px);
+        --disc-size: clamp(205px, 52vh, 290px);
+        --step-1: clamp(148px, 36vh, 205px);
+        --step-2: clamp(240px, 56vh, 325px);
         --step-3: 410px;
       }
     }
 
-    @media (min-width: 900px) and (orientation: landscape) and (min-height: 581px) {
-      #appShell { max-width: 1180px; }
-      #landscapeWorkspace { display: grid; grid-template-columns: 40% 60%; gap: 0; border-left: 1px solid #1f2e2a; border-right: 1px solid #1f2e2a; }
-      #tracklistColumn { order: 1; border-right: 1px solid #1f2e2a; max-height: calc(100vh - 52px); }
-      #carouselColumn { order: 2; border-bottom: none; justify-content: center; gap: 1rem; }
+    /* Compact Phone Landscape */
+    @media (max-width: 767px) and (orientation: landscape) {
+      body { height: 100dvh; overflow: hidden; }
+      #appShell { height: 100dvh; max-width: 100%; display: flex; flex-direction: column; overflow: hidden; }
+      #landscapeWorkspace { flex: 1; min-height: 0; display: grid; grid-template-columns: 58% 42%; overflow: hidden; }
+      #carouselColumn {
+        order: 1;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        overflow: hidden;
+        border-bottom: none;
+        border-right: 1px solid #233029;
+        padding: 0.4rem 0.6rem;
+      }
+      #tracklistColumn {
+        order: 2;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      #tracklistScrollArea { flex: 1; overflow-y: auto; padding-bottom: 1rem; }
       #carouselStage {
-        height: 320px !important;
-        --disc-size: 275px;
-        --step-1: 192px;
-        --step-2: 305px;
-        --step-3: 390px;
+        flex: 1;
+        height: auto !important;
+        min-height: 0;
+        --disc-size: clamp(160px, 50vh, 220px);
+        --step-1: clamp(118px, 35vh, 160px);
+        --step-2: clamp(190px, 52vh, 250px);
+        --step-3: 320px;
       }
     }
   </style>
 </head>
-<body class="min-h-screen antialiased selection:bg-skoda-green selection:text-white">
+<body class="min-h-screen antialiased selection:bg-skoda-green selection:text-black">
   <div id="appShell" class="max-w-3xl mx-auto min-h-screen flex flex-col">
 
-    <!-- Header -->
+    <!-- Top Header -->
     <header class="sticky top-0 z-30 bg-skoda-panel/95 backdrop-blur-md border-b border-skoda-border px-3 py-2 shrink-0">
       <div class="flex items-center justify-between gap-2">
         <div class="flex items-center gap-2 min-w-0">
-          <div class="w-7 h-7 rounded-lg bg-skoda-green/20 border border-skoda-green/50 flex items-center justify-center shrink-0">
-            <svg class="w-4 h-4 text-skoda-glow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <div class="w-7 h-7 rounded-lg bg-skoda-green/15 border border-skoda-green/50 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-skoda-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
               <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/>
             </svg>
           </div>
           <div class="min-w-0">
-            <h1 class="text-xs sm:text-sm font-bold tracking-wide text-white uppercase truncate">Octavia MP3 Binder</h1>
+            <h1 class="text-xs sm:text-sm font-bold tracking-wide text-white uppercase truncate">OCTAVIA MP3 BINDER</h1>
             <p class="text-[10px] text-slate-400 font-mono truncate">ŠKODA SWING • 16-DISC COLLECTION</p>
           </div>
         </div>
 
         <div class="flex items-center gap-1.5 shrink-0">
           <button id="fullscreenBtn" type="button" title="Toggle Fullscreen" aria-label="Toggle Fullscreen"
-            class="p-1.5 rounded-lg bg-skoda-card hover:bg-skoda-border border border-skoda-border text-slate-200 flex items-center justify-center active:scale-95 transition">
-            <svg class="w-3.5 h-3.5 text-skoda-glow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            class="p-1.5 rounded-lg bg-skoda-card hover:bg-skoda-border/60 border border-skoda-border text-slate-200 flex items-center justify-center active:scale-95 transition">
+            <svg class="w-3.5 h-3.5 text-skoda-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
             </svg>
           </button>
 
-          <!-- Hidden by default for public passengers; unlocked only via #admin -->
+          <!-- Hidden unless #admin is in URL hash -->
           <button id="openImportBtn" type="button"
-            class="hidden px-2.5 py-1.5 rounded-lg bg-skoda-card hover:bg-skoda-border border border-skoda-border text-[11px] font-medium text-slate-200 items-center gap-1.5 active:scale-95 transition">
-            <svg class="w-3.5 h-3.5 text-skoda-glow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            class="hidden px-2.5 py-1.5 rounded-lg bg-skoda-card hover:bg-skoda-border/60 border border-skoda-border text-[11px] font-medium text-slate-200 items-center gap-1.5 active:scale-95 transition">
+            <svg class="w-3.5 h-3.5 text-skoda-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
             </svg>
             <span>Edit Lists</span>
@@ -392,28 +587,29 @@
       </div>
     </header>
 
-    <!-- Main Responsive Workspace -->
+    <!-- Main Workspace -->
     <main id="landscapeWorkspace" class="flex-1 flex flex-col">
 
-      <!-- 3D CD Carousel Section (Top in Portrait, Expanded 60% Right Pane in Landscape) -->
+      <!-- 3D CD Stage + Pill Scrollbar (Top in Portrait, 60% Left Column in Landscape) -->
       <section id="carouselColumn" class="bg-gradient-to-b from-skoda-panel to-skoda-bg border-b border-skoda-border px-3 py-2.5">
         <div class="flex items-center justify-between text-[10px] font-mono text-slate-400 shrink-0 relative z-30">
-          <!-- Text-Free Graphic Animation Mode Switcher (Top-Left of Stage) -->
+          <!-- Graphic-Only 3-Mode Animation Switcher (No Text Labels) -->
           <div id="animModeSwitcher" class="relative">
-            <button id="animModeBtn" type="button" aria-label="Switch Disc Animation Mode" title="Switch Disc Animation Mode" aria-expanded="false"
-              class="h-7 px-2 rounded-lg bg-[#111714]/95 hover:bg-skoda-card border border-[#233029] text-skoda-glow flex items-center gap-1.5 shadow-md active:scale-95 transition">
-              <span id="animModeCurrentIcon" class="flex items-center justify-center"></span>
+            <button id="animModeBtn" type="button" aria-label="Animation Mode" aria-expanded="false"
+              class="h-7 px-2 rounded-lg bg-skoda-card/95 hover:border-skoda-green/60 border border-skoda-border text-skoda-green flex items-center gap-1.5 shadow-md active:scale-95 transition">
+              <span id="animModeCurrentIcon" class="flex items-center justify-center">
+                <svg class="w-5 h-3.5" viewBox="0 0 28 18" fill="none"><circle cx="6" cy="9" r="4.2" stroke="currentColor" stroke-width="1.5" opacity="0.65"/><circle cx="22" cy="9" r="4.2" stroke="currentColor" stroke-width="1.5" opacity="0.65"/><circle cx="14" cy="9" r="6.4" fill="#111714" stroke="currentColor" stroke-width="1.8"/><circle cx="14" cy="9" r="1.8" stroke="currentColor" stroke-width="1.3"/></svg>
+              </span>
               <svg class="w-2.5 h-2.5 text-slate-400" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M3 4.5L6 7.5L9 4.5"/>
               </svg>
             </button>
 
-            <!-- Compact Icon-Only Dropdown List -->
             <div id="animModeMenu" role="menu" aria-label="Animation Modes"
-              class="hidden absolute left-0 top-full mt-1.5 p-1 rounded-xl bg-[#111714]/95 backdrop-blur-md border border-[#233029] shadow-2xl flex-col gap-1 z-40">
-              <button type="button" role="menuitem" data-mode="carousel" aria-label="Panoramic Carousel Mode" title="Panoramic Carousel Mode"
-                class="anim-mode-option w-9 h-8 rounded-lg flex items-center justify-center border border-transparent text-slate-400 hover:text-white hover:bg-skoda-card transition">
-                <!-- Carousel Graphic: Large center disc flanked by two side discs -->
+              class="hidden absolute left-0 top-full mt-1.5 p-1 rounded-xl bg-skoda-card/95 backdrop-blur-md border border-skoda-border shadow-2xl flex-col gap-1 z-40">
+              <!-- Option A: Carousel -->
+              <button type="button" role="menuitem" data-mode="carousel" aria-label="Carousel Mode"
+                class="anim-mode-option w-9 h-8 rounded-lg flex items-center justify-center border border-transparent text-slate-400 hover:text-white hover:bg-skoda-panel transition">
                 <svg class="w-6 h-4" viewBox="0 0 28 18" fill="none">
                   <circle cx="6" cy="9" r="4.2" stroke="currentColor" stroke-width="1.5" opacity="0.65"/>
                   <circle cx="22" cy="9" r="4.2" stroke="currentColor" stroke-width="1.5" opacity="0.65"/>
@@ -422,9 +618,9 @@
                 </svg>
               </button>
 
-              <button type="button" role="menuitem" data-mode="jukebox" aria-label="Jukebox Stacks Mode" title="Jukebox Stacks Mode"
-                class="anim-mode-option w-9 h-8 rounded-lg flex items-center justify-center border border-transparent text-slate-400 hover:text-white hover:bg-skoda-card transition">
-                <!-- Jukebox Graphic: Left/right flat piles + lifted upright center disc -->
+              <!-- Option B: Jukebox Stacks -->
+              <button type="button" role="menuitem" data-mode="jukebox" aria-label="Jukebox Mode"
+                class="anim-mode-option w-9 h-8 rounded-lg flex items-center justify-center border border-transparent text-slate-400 hover:text-white hover:bg-skoda-panel transition">
                 <svg class="w-6 h-4" viewBox="0 0 28 18" fill="none">
                   <ellipse cx="5.2" cy="14.5" rx="3.8" ry="1.3" stroke="currentColor" stroke-width="1.3" opacity="0.65"/>
                   <ellipse cx="5.2" cy="12.3" rx="3.8" ry="1.3" stroke="currentColor" stroke-width="1.3" opacity="0.85"/>
@@ -435,43 +631,43 @@
                 </svg>
               </button>
 
-              <button type="button" role="menuitem" data-mode="binder" aria-label="CD Binder Page Flip Mode" title="CD Binder Page Flip Mode"
-                class="anim-mode-option w-9 h-8 rounded-lg flex items-center justify-center border border-transparent text-slate-400 hover:text-white hover:bg-skoda-card transition">
-                <!-- Binder Graphic: Hinged left/right angled book sleeves + center face-on sleeve -->
+              <!-- Option C: 2-Up Binder Book -->
+              <button type="button" role="menuitem" data-mode="binder" aria-label="Binder Mode"
+                class="anim-mode-option w-9 h-8 rounded-lg flex items-center justify-center border border-transparent text-slate-400 hover:text-white hover:bg-skoda-panel transition">
                 <svg class="w-6 h-4" viewBox="0 0 28 18" fill="none">
-                  <path d="M3.5 4.2L8.5 2.6V15.4L3.5 13.8V4.2Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" opacity="0.72"/>
-                  <path d="M24.5 4.2L19.5 2.6V15.4L24.5 13.8V4.2Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" opacity="0.72"/>
-                  <rect x="9.5" y="2.2" width="9" height="13.6" rx="1.5" fill="#111714" stroke="currentColor" stroke-width="1.7"/>
-                  <circle cx="14" cy="9" r="2.6" stroke="currentColor" stroke-width="1.3"/>
+                  <rect x="3" y="2.5" width="11" height="13" rx="1.5" fill="#111714" stroke="currentColor" stroke-width="1.5"/>
+                  <rect x="14" y="2.5" width="11" height="13" rx="1.5" fill="#111714" stroke="currentColor" stroke-width="1.5"/>
+                  <circle cx="8.5" cy="9" r="2.7" stroke="currentColor" stroke-width="1.3"/>
+                  <circle cx="19.5" cy="9" r="2.7" stroke="currentColor" stroke-width="1.3"/>
                 </svg>
               </button>
             </div>
           </div>
 
-          <span id="sleeveCounter" class="text-skoda-glow font-semibold">SLEEVE 1 / 16</span>
+          <span id="sleeveCounter" class="text-skoda-green font-semibold">SLEEVE 1 / 16</span>
         </div>
 
-        <div id="carouselStage" data-anim-mode="carousel" class="carousel-stage relative h-52 sm:h-60 w-full flex items-center justify-center overflow-hidden my-1"></div>
+        <!-- 3D Stage -->
+        <div id="carouselStage" data-view-mode="carousel" class="carousel-stage relative h-52 sm:h-60 w-full flex items-center justify-center overflow-hidden my-1"></div>
 
         <!-- Pill Scrollbar Navigation -->
         <div class="flex items-center justify-center gap-1.5 shrink-0 pt-1">
           <button id="prevDiscBtn" type="button" aria-label="Previous Disc"
-            class="w-8 h-8 rounded-xl bg-skoda-card hover:bg-skoda-border border border-skoda-border text-slate-200 flex items-center justify-center active:scale-95 transition shrink-0">
+            class="w-8 h-8 rounded-xl bg-skoda-card hover:border-skoda-green/50 border border-skoda-border text-slate-200 flex items-center justify-center active:scale-95 transition shrink-0">
             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
           </button>
 
           <div id="discTabs" class="flex items-center gap-1 overflow-x-auto no-scrollbar px-2 py-1 rounded-2xl bg-skoda-card/90 border border-skoda-border max-w-full"></div>
 
           <button id="nextDiscBtn" type="button" aria-label="Next Disc"
-            class="w-8 h-8 rounded-xl bg-skoda-card hover:bg-skoda-border border border-skoda-border text-slate-200 flex items-center justify-center active:scale-95 transition shrink-0">
+            class="w-8 h-8 rounded-xl bg-skoda-card hover:border-skoda-green/50 border border-skoda-border text-slate-200 flex items-center justify-center active:scale-95 transition shrink-0">
             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
           </button>
         </div>
       </section>
 
-      <!-- Tracklist & Search Panel (Bottom in Portrait, 40% Left Pane in Landscape) -->
+      <!-- Tracklist & Search Column (Bottom in Portrait, 40% Right Column in Landscape) -->
       <section id="tracklistColumn" class="flex-1 flex flex-col bg-skoda-bg min-h-0">
-        <!-- Global Search & Active Disc Bar -->
         <div class="p-3 border-b border-skoda-border/80 bg-skoda-panel/60 space-y-2.5 shrink-0">
           <div class="relative">
             <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -486,7 +682,7 @@
           <div class="flex items-center justify-between gap-2">
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-2 min-w-0">
-                <span id="activeDiscBadge" class="px-1.5 py-0.5 rounded bg-skoda-green/20 border border-skoda-green/40 text-skoda-glow font-mono text-[10px] font-bold shrink-0">DISC 01</span>
+                <span id="activeDiscBadge" class="px-1.5 py-0.5 rounded bg-skoda-green/20 border border-skoda-green/40 text-skoda-green font-mono text-[10px] font-bold shrink-0">DISC 01</span>
                 <h2 id="activeDiscTitle" class="text-xs sm:text-sm font-bold text-white truncate">DJ Sebi — Locul tau in inima mea</h2>
               </div>
               <p id="activeDiscSubtitle" class="text-[11px] text-slate-400 truncate mt-0.5">Pressed Audio CD • Total Studio (10 tracks)</p>
@@ -494,19 +690,18 @@
 
             <div class="flex items-center gap-1.5 shrink-0">
               <a id="openPlaylistBtn" href="#" target="_blank" rel="noopener noreferrer"
-                class="playlist-link hidden px-2.5 py-1.5 rounded-xl bg-red-950/50 hover:bg-red-900/60 border border-red-800/50 text-[11px] font-semibold text-red-200 items-center gap-1 active:scale-95 transition">
+                class="hidden px-2.5 py-1.5 rounded-xl bg-red-950/50 hover:bg-red-900/60 border border-red-800/50 text-[11px] font-semibold text-red-200 items-center gap-1 active:scale-95 transition">
                 <span>Open YT Playlist</span>
                 <span>↗</span>
               </a>
               <button id="copyLinkBtn" type="button"
-                class="px-2.5 py-1.5 rounded-xl bg-skoda-card hover:bg-skoda-border border border-skoda-border text-[11px] font-medium text-slate-200 active:scale-95 transition">
+                class="px-2.5 py-1.5 rounded-xl bg-skoda-card hover:border-skoda-green/50 border border-skoda-border text-[11px] font-medium text-slate-200 active:scale-95 transition">
                 Share
               </button>
             </div>
           </div>
         </div>
 
-        <!-- Scrollable Tracks -->
         <div id="tracklistScrollArea" class="flex-1 overflow-y-auto p-3 space-y-2 pb-16">
           <div id="globalSearchResults" class="hidden space-y-2"></div>
           <div id="discTrackContainer" class="space-y-1.5"></div>
@@ -518,7 +713,7 @@
   <!-- Toast Banner -->
   <div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 px-3.5 py-2 rounded-xl bg-skoda-card border border-skoda-green/60 text-xs text-white shadow-xl opacity-0 pointer-events-none transition-opacity duration-200"></div>
 
-  <!-- Admin-Only Edit Lists & Photo Cropper Modal -->
+  <!-- Admin-Only Modal (#admin) -->
   <div id="importModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-3">
     <div class="bg-skoda-panel border border-skoda-border rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
       <div class="flex items-center justify-between px-4 py-3 border-b border-skoda-border">
@@ -529,46 +724,44 @@
         <button id="closeImportBtn" type="button" class="text-slate-400 hover:text-white text-sm px-2">✕</button>
       </div>
       <div class="p-4 space-y-3">
-        <!-- Disc Cover Photo Tester -->
         <div class="p-3 rounded-xl bg-skoda-card border border-skoda-border space-y-2">
           <div class="flex items-center justify-between gap-2">
             <div class="min-w-0">
               <p class="text-xs font-semibold text-white">CD Surface Photo Tester</p>
-              <p class="text-[10px] text-slate-400">Preview square-cropped <code class="text-slate-300">dj-sebi.jpg</code> or <code class="text-slate-300">maxell.jpg</code> (Discs 02–16).</p>
+              <p class="text-[10px] text-slate-400">Preview <code class="text-slate-300">dj-sebi.jpg</code> or <code class="text-slate-300">maxell.jpg</code>.</p>
             </div>
             <div class="flex items-center gap-1.5 shrink-0">
               <select id="photoTargetSelect" class="bg-skoda-panel border border-skoda-border rounded-lg px-2 py-1.5 text-[10px] font-mono text-white outline-none focus:border-skoda-green">
                 <option value="retail">Disc 01 (dj-sebi.jpg)</option>
                 <option value="maxell">Discs 02–16 (maxell.jpg)</option>
               </select>
-              <label class="px-2.5 py-1.5 rounded-lg bg-skoda-green text-white text-[11px] font-semibold cursor-pointer active:scale-95 transition">
+              <label class="px-2.5 py-1.5 rounded-lg bg-skoda-green text-black text-[11px] font-bold cursor-pointer active:scale-95 transition">
                 Choose Photo
                 <input id="photoUploadInput" type="file" accept="image/*" class="hidden" />
               </label>
             </div>
           </div>
           <div id="dataUrlRow" class="hidden flex items-center justify-between gap-2 pt-1 border-t border-skoda-border/60">
-            <span id="dataUrlStatus" class="text-[10px] font-mono text-skoda-glow truncate">500×500 JPEG Data URL ready</span>
+            <span id="dataUrlStatus" class="text-[10px] font-mono text-skoda-green truncate">500×500 JPEG Data URL ready</span>
             <button id="copyDataUrlBtn" type="button" class="px-2 py-1 rounded bg-skoda-panel border border-skoda-border text-[10px] font-mono text-white shrink-0">Copy Data URL</button>
           </div>
         </div>
 
-        <!-- Tracklist Editor -->
         <div class="flex gap-2">
           <select id="importTargetDisc" class="bg-skoda-card border border-skoda-border rounded-xl px-2.5 py-2 text-xs text-white outline-none focus:border-skoda-green max-w-[45%]"></select>
           <input id="importDiscTitle" type="text" placeholder="Disc title" class="flex-1 bg-skoda-card border border-skoda-border rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-skoda-green" />
         </div>
-        <textarea id="importTextarea" rows="7" placeholder="Paste CDBurnerXP tracklist (one track per line)..."
+        <textarea id="importTextarea" rows="7" placeholder="Paste tracklist (one track per line)..."
           class="w-full bg-skoda-card border border-skoda-border rounded-xl p-3 text-xs font-mono text-slate-200 outline-none focus:border-skoda-green"></textarea>
         <div class="flex justify-between items-center gap-2">
           <button id="resetStorageBtn" type="button" class="px-3 py-2 rounded-xl bg-skoda-card hover:bg-red-950/60 border border-skoda-border text-xs text-slate-300 transition">Reset Overrides</button>
-          <button id="saveImportBtn" type="button" class="px-4 py-2 rounded-xl bg-skoda-green hover:bg-skoda-glow/90 text-white text-xs font-bold transition">Apply to Disc</button>
+          <button id="saveImportBtn" type="button" class="px-4 py-2 rounded-xl bg-skoda-green hover:bg-skoda-glow text-black text-xs font-bold transition">Apply to Disc</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Safe JSON Data Store (All 16 Discs • 1,251 Tracks) -->
+  <!-- Complete 16-Disc Catalog (1,251 Tracks) -->
   <script type="application/json" id="disc-data">
 [
   {
@@ -1575,11 +1768,11 @@
   {
     "id": 12,
     "code": "DISC 12",
-    "title": "Hell Yeah — Vol. 1",
+    "title": "Just Music I Listen To... — Vol. 3",
     "subtitle": "Burned MP3 CD • 37 Tracks",
     "isRetail": false,
     "artUrl": "./maxell.jpg",
-    "playlistUrl": "https://music.youtube.com/playlist?list=PLOmp4tb1eywp1Q9CIEZ9z2-ddqFGwNc68",
+    "playlistUrl": "https://music.youtube.com/playlist?list=PLOmp4tb1eywotXDq90o-gxtPH3hS5cOe9",
     "tracks": [
       "SAMURAI 【 侍 】 ☯ Japanese Trap & Bass Type Beat ☯ Trapanese Hip Hop Mix",
       "Dark Bass Techno ⧸ Minimal ⧸ Tech Noir mix 'KTULU'",
@@ -1623,11 +1816,11 @@
   {
     "id": 13,
     "code": "DISC 13",
-    "title": "Hell Yeah — Vol. 2",
+    "title": "Just Music I Listen To... — Vol. 4",
     "subtitle": "Burned MP3 CD • 71 Tracks",
     "isRetail": false,
     "artUrl": "./maxell.jpg",
-    "playlistUrl": "https://music.youtube.com/playlist?list=PLOmp4tb1eywp1Q9CIEZ9z2-ddqFGwNc68",
+    "playlistUrl": "https://music.youtube.com/playlist?list=PLOmp4tb1eywotXDq90o-gxtPH3hS5cOe9",
     "tracks": [
       "Evilwave - Misery",
       "PlvgueDxctxr - DRVUGR",
@@ -1705,11 +1898,11 @@
   {
     "id": 14,
     "code": "DISC 14",
-    "title": "Hell Yeah — Vol. 3",
+    "title": "Just Music I Listen To... — Vol. 5",
     "subtitle": "Burned MP3 CD • 85 Tracks",
     "isRetail": false,
     "artUrl": "./maxell.jpg",
-    "playlistUrl": "https://music.youtube.com/playlist?list=PLOmp4tb1eywp1Q9CIEZ9z2-ddqFGwNc68",
+    "playlistUrl": "https://music.youtube.com/playlist?list=PLOmp4tb1eywotXDq90o-gxtPH3hS5cOe9",
     "tracks": [
       "Eminem - Till I Collapse [HD]",
       "swarm - On the Edge",
@@ -1801,7 +1994,7 @@
   {
     "id": 15,
     "code": "DISC 15",
-    "title": "Hell Yeah — Vol. 4",
+    "title": "Hell Yeah — Vol. 1",
     "subtitle": "Burned MP3 CD • 102 Tracks",
     "isRetail": false,
     "artUrl": "./maxell.jpg",
@@ -1914,7 +2107,7 @@
   {
     "id": 16,
     "code": "DISC 16",
-    "title": "Hell Yeah — Vol. 5",
+    "title": "Hell Yeah — Vol. 2",
     "subtitle": "Burned MP3 CD • 64 Tracks",
     "isRetail": false,
     "artUrl": "./maxell.jpg",
@@ -1990,51 +2183,37 @@
   </script>
 
   <script>
-    const STORAGE_KEY = "octavia_cd_binder_v18_clean";
-    const ANIM_MODE_STORAGE_KEY = "skotavia_anim_mode_manual";
+    const STORAGE_KEY = "skotavia_cd_binder_v21";
+    const VIEW_MODE_STORAGE_KEY = "skotavia_view_mode_manual";
+
     let DEFAULT_DISCS = [];
     try {
       DEFAULT_DISCS = JSON.parse(document.getElementById("disc-data").textContent);
-    } catch (e) {
-      console.error("Failed to parse disc JSON:", e);
+    } catch (err) {
+      console.error("Failed to parse disc catalog JSON:", err);
     }
-
-    // Purge legacy storage keys so cache updates cleanly
-    try {
-      [
-        "octavia_cd_binder_v1",
-        "octavia_cd_binder_v6",
-        "octavia_cd_binder_v16_final",
-        "octavia_cd_binder_v17_animated",
-        "octavia_cd_binder_discs"
-      ].forEach(k => localStorage.removeItem(k));
-    } catch (_) {}
 
     let DISCS = JSON.parse(JSON.stringify(DEFAULT_DISCS));
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length === DEFAULT_DISCS.length) DISCS = parsed;
+        if (Array.isArray(parsed) && parsed.length === DEFAULT_DISCS.length) {
+          DISCS = parsed;
+        }
       }
     } catch (_) {}
 
     let activeIndex = 0;
+    let binderSpreadIndex = 0; // 0: [Cover | CD1], 1: [CD2 | CD3], ..., 7: [CD14 | CD15], 8: [CD16 | Back Cover]
+    let currentViewMode = "carousel";
     let searchQuery = "";
     let lastGeneratedDataUrl = "";
     const imageLoadCache = {};
     const discSlotEls = [];
     const discTabEls = [];
-
-    function checkImageAvailability(url, onResolved) {
-      if (!url) return onResolved(false);
-      if (url.startsWith("data:")) return onResolved(true);
-      if (url in imageLoadCache) return onResolved(imageLoadCache[url]);
-      const probe = new Image();
-      probe.onload = () => { imageLoadCache[url] = true; onResolved(true); };
-      probe.onerror = () => { imageLoadCache[url] = false; onResolved(false); };
-      probe.src = url;
-    }
+    const binderLeafEls = [];
+    const binderPocketEls = [];
 
     const stageEl = document.getElementById("carouselStage");
     const tabsEl = document.getElementById("discTabs");
@@ -2055,106 +2234,14 @@
     const animModeCurrentIcon = document.getElementById("animModeCurrentIcon");
     const animModeOptionEls = Array.from(document.querySelectorAll(".anim-mode-option"));
 
-    const ANIM_MODE_ICONS = {
-      carousel: `<svg class="w-5 h-3.5" viewBox="0 0 28 18" fill="none"><circle cx="6" cy="9" r="4.2" stroke="currentColor" stroke-width="1.5" opacity="0.65"/><circle cx="22" cy="9" r="4.2" stroke="currentColor" stroke-width="1.5" opacity="0.65"/><circle cx="14" cy="9" r="6.4" fill="#111714" stroke="currentColor" stroke-width="1.8"/><circle cx="14" cy="9" r="1.8" stroke="currentColor" stroke-width="1.3"/></svg>`,
-      jukebox: `<svg class="w-5 h-3.5" viewBox="0 0 28 18" fill="none"><ellipse cx="5.2" cy="14.5" rx="3.8" ry="1.3" stroke="currentColor" stroke-width="1.3" opacity="0.65"/><ellipse cx="5.2" cy="12.3" rx="3.8" ry="1.3" stroke="currentColor" stroke-width="1.3" opacity="0.85"/><ellipse cx="22.8" cy="14.5" rx="3.8" ry="1.3" stroke="currentColor" stroke-width="1.3" opacity="0.65"/><ellipse cx="22.8" cy="12.3" rx="3.8" ry="1.3" stroke="currentColor" stroke-width="1.3" opacity="0.85"/><circle cx="14" cy="6.8" r="5.3" fill="#111714" stroke="currentColor" stroke-width="1.8"/><circle cx="14" cy="6.8" r="1.5" stroke="currentColor" stroke-width="1.3"/></svg>`,
-      binder: `<svg class="w-5 h-3.5" viewBox="0 0 28 18" fill="none"><path d="M3.5 4.2L8.5 2.6V15.4L3.5 13.8V4.2Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" opacity="0.72"/><path d="M24.5 4.2L19.5 2.6V15.4L24.5 13.8V4.2Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" opacity="0.72"/><rect x="9.5" y="2.2" width="9" height="13.6" rx="1.5" fill="#111714" stroke="currentColor" stroke-width="1.7"/><circle cx="14" cy="9" r="2.6" stroke="currentColor" stroke-width="1.3"/></svg>`
+    const VIEW_MODE_ICONS = {
+      carousel: '<svg class="w-5 h-3.5" viewBox="0 0 28 18" fill="none"><circle cx="6" cy="9" r="4.2" stroke="currentColor" stroke-width="1.5" opacity="0.65"/><circle cx="22" cy="9" r="4.2" stroke="currentColor" stroke-width="1.5" opacity="0.65"/><circle cx="14" cy="9" r="6.4" fill="#111714" stroke="currentColor" stroke-width="1.8"/><circle cx="14" cy="9" r="1.8" stroke="currentColor" stroke-width="1.3"/></svg>',
+      jukebox: '<svg class="w-5 h-3.5" viewBox="0 0 28 18" fill="none"><ellipse cx="5.2" cy="14.5" rx="3.8" ry="1.3" stroke="currentColor" stroke-width="1.3" opacity="0.65"/><ellipse cx="5.2" cy="12.3" rx="3.8" ry="1.3" stroke="currentColor" stroke-width="1.3" opacity="0.85"/><ellipse cx="22.8" cy="14.5" rx="3.8" ry="1.3" stroke="currentColor" stroke-width="1.3" opacity="0.65"/><ellipse cx="22.8" cy="12.3" rx="3.8" ry="1.3" stroke="currentColor" stroke-width="1.3" opacity="0.85"/><circle cx="14" cy="6.8" r="5.3" fill="#111714" stroke="currentColor" stroke-width="1.8"/><circle cx="14" cy="6.8" r="1.5" stroke="currentColor" stroke-width="1.3"/></svg>',
+      binder: '<svg class="w-5 h-3.5" viewBox="0 0 28 18" fill="none"><rect x="3" y="2.5" width="11" height="13" rx="1.5" fill="#111714" stroke="currentColor" stroke-width="1.5"/><rect x="14" y="2.5" width="11" height="13" rx="1.5" fill="#111714" stroke="currentColor" stroke-width="1.5"/><circle cx="8.5" cy="9" r="2.7" stroke="currentColor" stroke-width="1.3"/><circle cx="19.5" cy="9" r="2.7" stroke="currentColor" stroke-width="1.3"/></svg>'
     };
 
-    function getOrientationDefaultAnimMode() {
-      return window.innerWidth > window.innerHeight ? "carousel" : "jukebox";
-    }
-
-    function applyAnimationMode(mode, isManual = false) {
-      const validModes = ["carousel", "jukebox", "binder"];
-      const resolved = validModes.includes(mode) ? mode : getOrientationDefaultAnimMode();
-      stageEl.setAttribute("data-anim-mode", resolved);
-      if (animModeCurrentIcon) animModeCurrentIcon.innerHTML = ANIM_MODE_ICONS[resolved];
-
-      animModeOptionEls.forEach(btn => {
-        const isSelected = btn.dataset.mode === resolved;
-        btn.classList.toggle("text-skoda-glow", isSelected);
-        btn.classList.toggle("bg-skoda-green/15", isSelected);
-        btn.classList.toggle("border-skoda-green/50", isSelected);
-        btn.classList.toggle("text-slate-400", !isSelected);
-        btn.classList.toggle("border-transparent", !isSelected);
-      });
-
-      if (isManual) {
-        try { localStorage.setItem(ANIM_MODE_STORAGE_KEY, resolved); } catch (_) {}
-      }
-    }
-
-    function syncAnimationModeWithOrientation() {
-      let manualMode = null;
-      try { manualMode = localStorage.getItem(ANIM_MODE_STORAGE_KEY); } catch (_) {}
-      if (manualMode && ["carousel", "jukebox", "binder"].includes(manualMode)) {
-        applyAnimationMode(manualMode, false);
-      } else {
-        applyAnimationMode(getOrientationDefaultAnimMode(), false);
-      }
-    }
-
-    function closeAnimModeMenu() {
-      if (!animModeMenu) return;
-      animModeMenu.classList.add("hidden");
-      animModeMenu.classList.remove("flex");
-      if (animModeBtn) animModeBtn.setAttribute("aria-expanded", "false");
-    }
-
-    if (animModeBtn && animModeMenu) {
-      animModeBtn.addEventListener("click", e => {
-        e.stopPropagation();
-        const isHidden = animModeMenu.classList.contains("hidden");
-        if (isHidden) {
-          animModeMenu.classList.remove("hidden");
-          animModeMenu.classList.add("flex");
-          animModeBtn.setAttribute("aria-expanded", "true");
-        } else {
-          closeAnimModeMenu();
-        }
-      });
-
-      // Double-tap resets sticky manual override back to automatic orientation mode
-      animModeBtn.addEventListener("dblclick", e => {
-        e.stopPropagation();
-        try { localStorage.removeItem(ANIM_MODE_STORAGE_KEY); } catch (_) {}
-        syncAnimationModeWithOrientation();
-        closeAnimModeMenu();
-        showToast("Auto orientation animation restored");
-      });
-
-      animModeOptionEls.forEach(btn => {
-        btn.addEventListener("click", e => {
-          e.stopPropagation();
-          applyAnimationMode(btn.dataset.mode, true);
-          closeAnimModeMenu();
-        });
-      });
-
-      document.addEventListener("click", e => {
-        if (!animModeMenu.classList.contains("hidden") && !document.getElementById("animModeSwitcher").contains(e.target)) {
-          closeAnimModeMenu();
-        }
-      });
-    }
-
-    // Public Read-Only Mode vs. Hidden #admin Toggle
-    function syncAdminMode() {
-      const isAdmin = window.location.hash.toLowerCase() === "#admin";
-      if (isAdmin) {
-        openImportBtn.classList.remove("hidden");
-        openImportBtn.classList.add("flex");
-      } else {
-        openImportBtn.classList.add("hidden");
-        openImportBtn.classList.remove("flex");
-        importModal.classList.add("hidden");
-        importModal.classList.remove("flex");
-      }
-    }
-    window.addEventListener("hashchange", syncAdminMode);
-
     function showToast(msg) {
+      if (!toastEl) return;
       toastEl.textContent = msg;
       toastEl.classList.remove("opacity-0");
       clearTimeout(window._toastTimer);
@@ -2165,20 +2252,30 @@
       return String(str).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
     }
 
-    // Split "Playlist Name — Vol. X" into clean two-line CD face labels (Playlist Name + Volume only)
-    // Only split on spaced separators (\s+[—–-]\s+) so hyphenated playlist names like "R-M" stay intact
+    // Split ONLY on spaced separators (\s+[—–-]\s+) so hyphenated playlist names like "R-M" stay intact
     function parseDiscFaceLabel(disc) {
       const rawTitle = String(disc.title || "").trim();
       const parts = rawTitle.split(/\s+[—–-]\s+/);
       if (parts.length >= 2) {
-        const playlistName = parts[0].trim();
-        const volumeLabel = parts.slice(1).join(" — ").trim().toUpperCase();
-        return { playlistName, volumeLabel };
+        return {
+          playlistName: parts[0].trim(),
+          volumeLabel: parts.slice(1).join(" — ").trim().toUpperCase()
+        };
       }
       return {
         playlistName: rawTitle,
         volumeLabel: disc.isRetail ? "AUDIO CD" : ""
       };
+    }
+
+    function checkImageAvailability(url, onResolved) {
+      if (!url) return onResolved(false);
+      if (url.startsWith("data:")) return onResolved(true);
+      if (url in imageLoadCache) return onResolved(imageLoadCache[url]);
+      const probe = new Image();
+      probe.onload = () => { imageLoadCache[url] = true; onResolved(true); };
+      probe.onerror = () => { imageLoadCache[url] = false; onResolved(false); };
+      probe.src = url;
     }
 
     function buildYtSearchUrl(trackName) {
@@ -2195,12 +2292,81 @@
       }
     }
 
-    // Build persistent DOM elements once so CSS transitions & @keyframes spin never break
-    function buildCarouselDom() {
-      if (!stageEl || !tabsEl) return;
-      stageEl.innerHTML = "";
+    // Map 0-based disc index to physical binder spread:
+    // Disc 0 (CD 01) -> Spread 0 (right)
+    // Disc 1,2 (CD 02, CD 03) -> Spread 1 (left, right) ... Disc 15 (CD 16) -> Spread 8 (left)
+    function getSpreadForDiscIndex(discIdx) {
+      if (discIdx <= 0) return 0;
+      return Math.floor((discIdx + 1) / 2);
+    }
+
+    function getMaxBinderSpread() {
+      return Math.floor(DISCS.length / 2); // 8 for 16 discs (9 spreads total: 0..8)
+    }
+
+    function getOrientationDefaultViewMode() {
+      return window.innerWidth > window.innerHeight ? "carousel" : "jukebox";
+    }
+
+    function applyViewMode(mode, isManual = false) {
+      const validModes = ["carousel", "jukebox", "binder"];
+      const resolved = validModes.includes(mode) ? mode : getOrientationDefaultViewMode();
+      currentViewMode = resolved;
+      if (stageEl) stageEl.setAttribute("data-view-mode", resolved);
+      if (animModeCurrentIcon) animModeCurrentIcon.innerHTML = VIEW_MODE_ICONS[resolved];
+
+      animModeOptionEls.forEach(btn => {
+        const isSelected = btn.dataset.mode === resolved;
+        btn.classList.toggle("text-skoda-green", isSelected);
+        btn.classList.toggle("bg-skoda-green/15", isSelected);
+        btn.classList.toggle("border-skoda-green/50", isSelected);
+        btn.classList.toggle("text-slate-400", !isSelected);
+        btn.classList.toggle("border-transparent", !isSelected);
+      });
+
+      if (resolved === "binder") {
+        binderSpreadIndex = getSpreadForDiscIndex(activeIndex);
+      }
+
+      if (isManual) {
+        try { localStorage.setItem(VIEW_MODE_STORAGE_KEY, resolved); } catch (_) {}
+      }
+      if (discSlotEls.length) {
+        updateCarouselPositions();
+        updateBinderBookState();
+        updateHeaderCounter();
+      }
+    }
+
+    function syncViewModeWithOrientation() {
+      let manualMode = null;
+      try { manualMode = localStorage.getItem(VIEW_MODE_STORAGE_KEY); } catch (_) {}
+      if (manualMode && ["carousel", "jukebox", "binder"].includes(manualMode)) {
+        applyViewMode(manualMode, false);
+      } else {
+        applyViewMode(getOrientationDefaultViewMode(), false);
+      }
+    }
+
+    // Lock Admin modal strictly behind #admin hash
+    function syncAdminMode() {
+      if (!openImportBtn || !importModal) return;
+      const isAdmin = window.location.hash.toLowerCase() === "#admin";
+      if (isAdmin) {
+        openImportBtn.classList.remove("hidden");
+        openImportBtn.classList.add("inline-flex");
+      } else {
+        openImportBtn.classList.add("hidden");
+        openImportBtn.classList.remove("inline-flex");
+        importModal.classList.add("hidden");
+        importModal.classList.remove("flex");
+      }
+    }
+    window.addEventListener("hashchange", syncAdminMode);
+
+    function renderTabs() {
+      if (!tabsEl) return;
       tabsEl.innerHTML = "";
-      discSlotEls.length = 0;
       discTabEls.length = 0;
 
       DISCS.forEach((disc, idx) => {
@@ -2210,86 +2376,281 @@
         tab.addEventListener("click", () => selectDisc(idx));
         tabsEl.appendChild(tab);
         discTabEls.push(tab);
+      });
+    }
 
+    function buildDiscVisualElement(disc) {
+      const discEl = document.createElement("div");
+      discEl.className = "cd-disc";
+
+      const rotor = document.createElement("div");
+      rotor.className = "disc-rotor";
+
+      if (disc.isRetail) {
+        const art = document.createElement("div");
+        art.className = "cd-art retail-fallback flex flex-col items-center justify-between py-3 px-4 text-center";
+        art.innerHTML = `
+          <span class="text-[8px] font-bold tracking-wider text-amber-100/90 uppercase drop-shadow">Total Studio</span>
+          <div class="mt-auto mb-1">
+            <div class="text-xs font-black italic tracking-wide text-white drop-shadow">DJ SEBI</div>
+            <div class="text-[8px] italic text-amber-200/90">Locul tau in inima mea</div>
+          </div>
+        `;
+        if (disc.artUrl) {
+          checkImageAvailability(disc.artUrl, loaded => {
+            if (loaded) {
+              art.classList.remove("retail-fallback");
+              art.style.backgroundImage = `url("${disc.artUrl}")`;
+              art.innerHTML = "";
+            }
+          });
+        }
+        rotor.appendChild(art);
+      } else {
+        const art = document.createElement("div");
+        art.className = "cd-art";
+        rotor.appendChild(art);
+
+        const { playlistName, volumeLabel } = parseDiscFaceLabel(disc);
+        const label = document.createElement("div");
+        label.className = "absolute inset-0 flex flex-col items-center justify-between py-3 px-3 text-center pointer-events-none z-20";
+        label.innerHTML = `
+          <span class="maxell-top-text text-[8px] font-mono tracking-widest text-skoda-green/80 uppercase">MAXELL CD-R • 700MB</span>
+          <div class="mt-auto mb-1 px-2 max-w-[88%] flex flex-col items-center">
+            <div class="disc-face-playlist text-[11px] font-extrabold text-white leading-tight tracking-tight truncate w-full">${escapeHtml(playlistName)}</div>
+            ${volumeLabel ? `<div class="disc-face-volume text-[9px] font-mono font-bold tracking-wider text-skoda-green uppercase mt-0.5 truncate w-full">${escapeHtml(volumeLabel)}</div>` : ""}
+          </div>
+        `;
+        rotor.appendChild(label);
+
+        if (disc.artUrl) {
+          checkImageAvailability(disc.artUrl, loaded => {
+            if (loaded) {
+              art.style.backgroundImage = `url("${disc.artUrl}")`;
+              const topText = label.querySelector(".maxell-top-text");
+              if (topText) topText.classList.add("opacity-0");
+            }
+          });
+        }
+      }
+
+      const sheen = document.createElement("div");
+      sheen.className = "cd-sheen";
+      const hub = document.createElement("div");
+      hub.className = "cd-hub";
+
+      discEl.appendChild(rotor);
+      discEl.appendChild(sheen);
+      discEl.appendChild(hub);
+      return discEl;
+    }
+
+    function createBinderSleevePocket(discIdx) {
+      const disc = DISCS[discIdx];
+      const pocket = document.createElement("div");
+      pocket.className = "binder-sleeve-pocket";
+      pocket.dataset.discIndex = String(discIdx);
+
+      const tag = document.createElement("span");
+      tag.className = "binder-slot-tag";
+      tag.textContent = `CD ${String(disc.id).padStart(2, "0")}`;
+      pocket.appendChild(tag);
+
+      pocket.appendChild(buildDiscVisualElement(disc));
+
+      pocket.addEventListener("click", e => {
+        e.stopPropagation();
+        selectDisc(discIdx, { syncSpread: false });
+      });
+
+      binderPocketEls[discIdx] = pocket;
+      return pocket;
+    }
+
+    function renderDiscs() {
+      if (!stageEl) return;
+      stageEl.innerHTML = "";
+      discSlotEls.length = 0;
+      binderLeafEls.length = 0;
+      binderPocketEls.length = 0;
+
+      // 1. Render Carousel & Jukebox 3D Disc Slots
+      DISCS.forEach((disc, idx) => {
         const slot = document.createElement("div");
         slot.className = "disc-slot pos-hidden-right";
         slot.dataset.index = String(idx);
-
-        const discEl = document.createElement("div");
-        discEl.className = "cd-disc";
-
-        const rotor = document.createElement("div");
-        rotor.className = "disc-rotor";
-
-        if (disc.isRetail) {
-          const art = document.createElement("div");
-          art.className = "cd-art disc-custom-photo retail-fallback flex flex-col items-center justify-between py-3 px-4 text-center";
-          art.innerHTML = `
-            <span class="text-[8px] font-bold tracking-wider text-amber-100/90 uppercase drop-shadow">Total Studio</span>
-            <div class="mt-auto mb-1">
-              <div class="text-xs font-black italic tracking-wide text-white drop-shadow">DJ SEBI</div>
-              <div class="text-[8px] italic text-amber-200/90">Locul tau in inima mea</div>
-            </div>
-          `;
-          if (disc.artUrl) {
-            art.style.backgroundImage = `url("${disc.artUrl}")`;
-            checkImageAvailability(disc.artUrl, loaded => {
-              if (loaded) {
-                art.classList.remove("retail-fallback");
-                art.style.backgroundImage = `url("${disc.artUrl}")`;
-                art.innerHTML = "";
-              } else {
-                art.style.backgroundImage = "";
-              }
-            });
-          }
-          rotor.appendChild(art);
-        } else {
-          const art = document.createElement("div");
-          art.className = "cd-art disc-custom-photo";
-          rotor.appendChild(art);
-
-          const { playlistName, volumeLabel } = parseDiscFaceLabel(disc);
-          const label = document.createElement("div");
-          label.className = "absolute inset-0 flex flex-col items-center justify-between py-3 px-3 text-center pointer-events-none z-20";
-          label.innerHTML = `
-            <span class="maxell-top-text text-[8px] font-mono tracking-widest text-skoda-glow/80 uppercase">MAXELL CD-R • 700MB</span>
-            <div class="mt-auto mb-0.5 px-2 max-w-[88%] flex flex-col items-center">
-              <div class="disc-face-playlist text-[11px] font-extrabold text-white leading-tight tracking-tight truncate w-full">${escapeHtml(playlistName)}</div>
-              ${volumeLabel ? `<div class="disc-face-volume text-[9px] font-mono font-bold tracking-wider text-skoda-glow uppercase mt-0.5 truncate w-full">${escapeHtml(volumeLabel)}</div>` : ""}
-            </div>
-          `;
-          rotor.appendChild(label);
-
-          if (disc.artUrl) {
-            checkImageAvailability(disc.artUrl, loaded => {
-              if (loaded) {
-                art.style.backgroundImage = `url("${disc.artUrl}")`;
-                const topText = label.querySelector(".maxell-top-text");
-                if (topText) topText.classList.add("opacity-0");
-              }
-            });
-          }
-        }
-
-        const sheen = document.createElement("div");
-        sheen.className = "cd-sheen";
-        const hub = document.createElement("div");
-        hub.className = "cd-hub";
-
-        discEl.appendChild(rotor);
-        discEl.appendChild(sheen);
-        discEl.appendChild(hub);
-        slot.appendChild(discEl);
+        slot.appendChild(buildDiscVisualElement(disc));
         slot.addEventListener("click", () => selectDisc(idx));
-
         stageEl.appendChild(slot);
         discSlotEls.push(slot);
       });
+
+      // 2. Render Physical 2-Up Binder Book Spread (8 double-sided leaves for 16 discs)
+      const bookWrapper = document.createElement("div");
+      bookWrapper.className = "binder-book-wrapper";
+
+      const book = document.createElement("div");
+      book.className = "binder-book";
+
+      // Inside Front Cover (Left of Spread 0)
+      const leftCover = document.createElement("div");
+      leftCover.className = "binder-cover-base left-cover";
+      leftCover.innerHTML = `
+        <div class="binder-cover-pocket">
+          <svg class="w-5 h-5 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/>
+          </svg>
+          <span class="text-[9px] font-mono tracking-widest uppercase">FRONT COVER</span>
+        </div>
+      `;
+      book.appendChild(leftCover);
+
+      // Inside Back Cover (Right of Spread 8)
+      const rightCover = document.createElement("div");
+      rightCover.className = "binder-cover-base right-cover";
+      rightCover.innerHTML = `
+        <div class="binder-cover-pocket">
+          <svg class="w-5 h-5 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/>
+          </svg>
+          <span class="text-[9px] font-mono tracking-widest uppercase">BACK COVER</span>
+        </div>
+      `;
+      book.appendChild(rightCover);
+
+      // Center Binder Spine
+      const spine = document.createElement("div");
+      spine.className = "binder-spine";
+      book.appendChild(spine);
+
+      // 8 Double-Sided Page Leaves:
+      // Leaf 0: Front = CD 01 (idx 0), Back = CD 02 (idx 1)
+      // Leaf 1: Front = CD 03 (idx 2), Back = CD 04 (idx 3)
+      // ...
+      // Leaf 7: Front = CD 15 (idx 14), Back = CD 16 (idx 15)
+      const leafCount = Math.ceil(DISCS.length / 2);
+      for (let leafIdx = 0; leafIdx < leafCount; leafIdx++) {
+        const frontDiscIdx = leafIdx * 2;
+        const backDiscIdx = leafIdx * 2 + 1;
+
+        const leaf = document.createElement("div");
+        leaf.className = "binder-leaf";
+        leaf.dataset.leafIndex = String(leafIdx);
+
+        const frontFace = document.createElement("div");
+        frontFace.className = "binder-face front-face";
+        if (frontDiscIdx < DISCS.length) {
+          frontFace.appendChild(createBinderSleevePocket(frontDiscIdx));
+        }
+
+        const backFace = document.createElement("div");
+        backFace.className = "binder-face back-face";
+        if (backDiscIdx < DISCS.length) {
+          backFace.appendChild(createBinderSleevePocket(backDiscIdx));
+        }
+
+        leaf.appendChild(frontFace);
+        leaf.appendChild(backFace);
+        book.appendChild(leaf);
+        binderLeafEls.push(leaf);
+      }
+
+      bookWrapper.appendChild(book);
+      stageEl.appendChild(bookWrapper);
+
+      updateBinderBookState();
+    }
+
+    function updateBinderBookState() {
+      const totalLeaves = binderLeafEls.length;
+      if (!totalLeaves) return;
+
+      const maxSpread = getMaxBinderSpread();
+      binderSpreadIndex = Math.max(0, Math.min(maxSpread, binderSpreadIndex));
+
+      binderLeafEls.forEach((leaf, leafIdx) => {
+        const isFlipped = leafIdx < binderSpreadIndex;
+        leaf.classList.toggle("is-flipped", isFlipped);
+
+        if (isFlipped) {
+          leaf.style.zIndex = String(10 + leafIdx);
+        } else {
+          leaf.style.zIndex = String(30 + (totalLeaves - leafIdx));
+        }
+      });
+
+      binderPocketEls.forEach((pocket, idx) => {
+        if (pocket) pocket.classList.toggle("is-selected-disc", idx === activeIndex);
+      });
+
+      // Hard stops on Prev/Next buttons at start and end in Binder mode
+      const prevBtn = document.getElementById("prevDiscBtn");
+      const nextBtn = document.getElementById("nextDiscBtn");
+      if (currentViewMode === "binder") {
+        const atStart = binderSpreadIndex <= 0;
+        const atEnd = binderSpreadIndex >= maxSpread;
+        if (prevBtn) {
+          prevBtn.disabled = atStart;
+          prevBtn.classList.toggle("opacity-35", atStart);
+          prevBtn.classList.toggle("pointer-events-none", atStart);
+        }
+        if (nextBtn) {
+          nextBtn.disabled = atEnd;
+          nextBtn.classList.toggle("opacity-35", atEnd);
+          nextBtn.classList.toggle("pointer-events-none", atEnd);
+        }
+      } else {
+        if (prevBtn) {
+          prevBtn.disabled = false;
+          prevBtn.classList.remove("opacity-35", "pointer-events-none");
+        }
+        if (nextBtn) {
+          nextBtn.disabled = false;
+          nextBtn.classList.remove("opacity-35", "pointer-events-none");
+        }
+      }
+    }
+
+    function turnBinderPage(delta) {
+      const maxSpread = getMaxBinderSpread();
+      const nextSpread = binderSpreadIndex + delta;
+
+      // Hard stops at Spread 0 (Cover | CD 01) and Spread 8 (CD 16 | Cover)
+      if (nextSpread < 0 || nextSpread > maxSpread) return;
+
+      binderSpreadIndex = nextSpread;
+
+      // Auto-select the newly revealed primary disc on the open spread:
+      // Spread 0 -> CD 01 (idx 0); Spread 1..7 -> Left disc (idx = spread*2 - 1); Spread 8 -> CD 16 (idx 15)
+      const targetDiscIdx = binderSpreadIndex === 0 ? 0 : (binderSpreadIndex * 2 - 1);
+      activeIndex = Math.max(0, Math.min(DISCS.length - 1, targetDiscIdx));
+
+      updateCarouselPositions();
+      updateBinderBookState();
+      renderTracklist();
+    }
+
+    function updateHeaderCounter() {
+      if (!counterEl) return;
+      if (currentViewMode === "binder") {
+        const maxSpread = getMaxBinderSpread();
+        if (binderSpreadIndex === 0) {
+          counterEl.textContent = `PAGE 1 / ${maxSpread + 1} • COVER | CD 01`;
+        } else if (binderSpreadIndex === maxSpread) {
+          counterEl.textContent = `PAGE ${maxSpread + 1} / ${maxSpread + 1} • CD 16 | COVER`;
+        } else {
+          const leftNum = String(binderSpreadIndex * 2).padStart(2, "0");
+          const rightNum = String(binderSpreadIndex * 2 + 1).padStart(2, "0");
+          counterEl.textContent = `PAGE ${binderSpreadIndex + 1} / ${maxSpread + 1} • CD ${leftNum}–${rightNum}`;
+        }
+      } else {
+        counterEl.textContent = `SLEEVE ${activeIndex + 1} / ${DISCS.length}`;
+      }
     }
 
     function updateCarouselPositions() {
       const total = DISCS.length;
+      if (!total) return;
       const posClasses = ["pos-hidden-left", "pos-prev2", "pos-prev", "pos-active", "pos-next", "pos-next2", "pos-hidden-right"];
 
       discSlotEls.forEach((slot, idx) => {
@@ -2304,7 +2665,6 @@
         else if (diff === 0) targetClass = "pos-active";
         else if (diff === 1) targetClass = "pos-next";
         else if (diff === 2) targetClass = "pos-next2";
-        else targetClass = "pos-hidden-right";
 
         slot.classList.remove(...posClasses);
         slot.classList.add(targetClass);
@@ -2312,7 +2672,7 @@
 
       discTabEls.forEach((tab, idx) => {
         tab.className = idx === activeIndex
-          ? "px-2 py-1 rounded-lg text-[10px] font-mono font-bold bg-skoda-green text-white shadow-sm shrink-0 transition"
+          ? "px-2 py-1 rounded-lg text-[10px] font-mono font-bold bg-skoda-green text-black shadow-sm shrink-0 transition"
           : "px-2 py-1 rounded-lg text-[10px] font-mono font-medium text-slate-400 hover:text-white shrink-0 transition";
       });
 
@@ -2346,11 +2706,11 @@
       });
     }
 
-    function renderActiveDiscTracks() {
+    function renderTracklist() {
       const disc = DISCS[activeIndex];
       if (!disc || !trackContainerEl) return;
 
-      if (counterEl) counterEl.textContent = `SLEEVE ${activeIndex + 1} / ${DISCS.length}`;
+      updateHeaderCounter();
       if (badgeEl) badgeEl.textContent = disc.code;
       if (titleEl) titleEl.textContent = disc.title;
       if (subtitleEl) subtitleEl.textContent = `${disc.subtitle} (${disc.tracks.length} tracks)`;
@@ -2366,62 +2726,32 @@
           playlistBtnEl.classList.remove("inline-flex");
         }
       }
-    const prevDiscBtn = document.getElementById("prevDiscBtn");
-    const nextDiscBtn = document.getElementById("nextDiscBtn");
-    if (prevDiscBtn) prevDiscBtn.addEventListener("click", () => selectDisc(activeIndex - 1));
-    if (nextDiscBtn) nextDiscBtn.addEventListener("click", () => selectDisc(activeIndex + 1));
 
-    let touchStartX = 0;
-    let isMouseDragging = false;
-    if (stageEl) {
-      stageEl.addEventListener("touchstart", e => { touchStartX = e.changedTouches[0].clientX; }, { passive: true });
-      stageEl.addEventListener("touchend", e => {
-        const dx = e.changedTouches[0].clientX - touchStartX;
-        if (Math.abs(dx) > 32) selectDisc(activeIndex + (dx < 0 ? 1 : -1));
-      }, { passive: true });
-      stageEl.addEventListener("mousedown", e => {
-        isMouseDragging = true;
-        touchStartX = e.clientX;
-      });
-      window.addEventListener("mouseup", e => {
-        if (!isMouseDragging) return;
-        isMouseDragging = false;
-        const dx = e.clientX - touchStartX;
-        if (Math.abs(dx) > 36) selectDisc(activeIndex + (dx < 0 ? 1 : -1));
-      });
-    }
+      trackContainerEl.innerHTML = disc.tracks.map((track, idx) => {
+        const num = String(idx + 1).padStart(2, "0");
+        const ytUrl = buildYtSearchUrl(track);
+        return `
+          <div class="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-skoda-card/90 hover:bg-skoda-card border border-skoda-border transition">
+            <div class="flex items-center gap-2.5 min-w-0 flex-1">
+              <span class="font-mono text-[11px] font-bold text-slate-500 w-5 shrink-0">${num}</span>
+              <div class="track-title-viewport no-fade">
+                <span class="track-title-scroll text-xs font-medium text-slate-100">${escapeHtml(track)}</span>
+              </div>
+            </div>
+            <a href="${ytUrl}" target="_blank" rel="noopener noreferrer"
+              onclick="openExternalLink(event, '${ytUrl.replace(/'/g, "\\'")}')"
+              class="shrink-0 px-2 py-1 rounded-lg bg-skoda-green/15 hover:bg-skoda-green/25 border border-skoda-green/40 text-[10px] font-mono font-bold text-skoda-green active:scale-95 transition">
+              YT ↗
+            </a>
+          </div>
+        `;
+      }).join("");
 
-    if (searchInputEl) {
-      searchInputEl.addEventListener("input", e => {
-        searchQuery = e.target.value;
-        if (clearSearchBtn) clearSearchBtn.classList.toggle("hidden", !searchQuery);
-        renderSearchResults();
-      });
-    }
-    if (clearSearchBtn) {
-      clearSearchBtn.addEventListener("click", () => {
-        searchQuery = "";
-        if (searchInputEl) searchInputEl.value = "";
-        clearSearchBtn.classList.add("hidden");
-        renderSearchResults();
-      });
-    }
-
-    const copyLinkBtn = document.getElementById("copyLinkBtn");
-    if (copyLinkBtn) {
-      copyLinkBtn.addEventListener("click", () => {
-        const shareUrl = `${window.location.origin}${window.location.pathname}?disc=${activeIndex + 1}`;
-        const inp = document.createElement("input");
-        inp.value = shareUrl;
-        document.body.appendChild(inp);
-        inp.select();
-        document.execCommand("copy");
-        document.body.removeChild(inp);
-        showToast(`Copied link for ${DISCS[activeIndex].code}`);
-      });
+      applyTrackMarquees(trackContainerEl);
     }
 
     function renderSearchResults() {
+      if (!globalResultsEl || !trackContainerEl) return;
       const q = searchQuery.trim().toLowerCase();
       if (!q) {
         globalResultsEl.classList.add("hidden");
@@ -2448,20 +2778,20 @@
       }
 
       globalResultsEl.innerHTML = `
-        <div class="text-[10px] font-mono text-skoda-glow px-1">FOUND ${matches.length} MATCH${matches.length === 1 ? "" : "ES"} ACROSS BINDER</div>
+        <div class="text-[10px] font-mono text-skoda-green px-1">FOUND ${matches.length} MATCH${matches.length === 1 ? "" : "ES"} ACROSS BINDER</div>
         ${matches.slice(0, 120).map(m => {
           const ytUrl = buildYtSearchUrl(m.track);
           return `
             <div class="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-skoda-card border border-skoda-border">
               <button type="button" onclick="jumpToMatch(${m.dIdx})" class="flex items-center gap-2 min-w-0 text-left flex-1">
-                <span class="px-1.5 py-0.5 rounded bg-skoda-green/20 text-skoda-glow font-mono text-[10px] font-bold shrink-0">${m.disc.code} #${m.tNum}</span>
+                <span class="px-1.5 py-0.5 rounded bg-skoda-green/20 text-skoda-green font-mono text-[10px] font-bold shrink-0">${m.disc.code} #${m.tNum}</span>
                 <div class="track-title-viewport no-fade">
                   <span class="track-title-scroll text-xs text-white">${escapeHtml(m.track)}</span>
                 </div>
               </button>
               <a href="${ytUrl}" target="_blank" rel="noopener noreferrer"
                 onclick="openExternalLink(event, '${ytUrl.replace(/'/g, "\\'")}')"
-                class="yt-link shrink-0 px-2 py-1 rounded-lg bg-skoda-green/15 border border-skoda-green/40 text-[10px] font-mono font-semibold text-skoda-glow">
+                class="shrink-0 px-2 py-1 rounded-lg bg-skoda-green/15 border border-skoda-green/40 text-[10px] font-mono font-bold text-skoda-green">
                 YT ↗
               </a>
             </div>
@@ -2474,185 +2804,303 @@
 
     function jumpToMatch(discIdx) {
       searchQuery = "";
-      searchInputEl.value = "";
-      clearSearchBtn.classList.add("hidden");
+      if (searchInputEl) searchInputEl.value = "";
+      if (clearSearchBtn) clearSearchBtn.classList.add("hidden");
       selectDisc(discIdx);
       renderSearchResults();
     }
 
-    function selectDisc(idx) {
+    function selectDisc(idx, options = {}) {
       const total = DISCS.length;
-      activeIndex = ((idx % total) + total) % total;
-      updateCarouselPositions();
-      renderActiveDiscTracks();
-    }
+      if (!total) return;
 
-    document.getElementById("prevDiscBtn").addEventListener("click", () => selectDisc(activeIndex - 1));
-    document.getElementById("nextDiscBtn").addEventListener("click", () => selectDisc(activeIndex + 1));
-
-    let touchStartX = 0;
-    stageEl.addEventListener("touchstart", e => { touchStartX = e.changedTouches[0].clientX; }, { passive: true });
-    stageEl.addEventListener("touchend", e => {
-      const dx = e.changedTouches[0].clientX - touchStartX;
-      if (Math.abs(dx) > 32) selectDisc(activeIndex + (dx < 0 ? 1 : -1));
-    }, { passive: true });
-
-    searchInputEl.addEventListener("input", e => {
-      searchQuery = e.target.value;
-      clearSearchBtn.classList.toggle("hidden", !searchQuery);
-      renderSearchResults();
-    });
-    clearSearchBtn.addEventListener("click", () => {
-      searchQuery = "";
-      searchInputEl.value = "";
-      clearSearchBtn.classList.add("hidden");
-      renderSearchResults();
-    });
-
-    document.getElementById("copyLinkBtn").addEventListener("click", () => {
-      const shareUrl = `${window.location.origin}${window.location.pathname}?disc=${activeIndex + 1}`;
-      const inp = document.createElement("input");
-      inp.value = shareUrl;
-      document.body.appendChild(inp);
-      inp.select();
-      document.execCommand("copy");
-      document.body.removeChild(inp);
-      showToast(`Copied link for ${DISCS[activeIndex].code}`);
-    });
-
-    document.getElementById("fullscreenBtn").addEventListener("click", () => {
-      const docEl = document.documentElement;
-      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-        if (docEl.requestFullscreen) {
-          docEl.requestFullscreen().catch(() => showToast("Use 'Add to Home Screen' for native fullscreen"));
-        } else if (docEl.webkitRequestFullscreen) {
-          docEl.webkitRequestFullscreen();
-        } else {
-          showToast("Use 'Add to Home Screen' for native fullscreen");
+      if (currentViewMode === "binder") {
+        // Hard bounds in binder mode (no wrap-around)
+        activeIndex = Math.max(0, Math.min(total - 1, idx));
+        if (options.syncSpread !== false) {
+          binderSpreadIndex = getSpreadForDiscIndex(activeIndex);
         }
       } else {
-        if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
-        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+        activeIndex = ((idx % total) + total) % total;
+        binderSpreadIndex = getSpreadForDiscIndex(activeIndex);
       }
-    });
 
+      updateCarouselPositions();
+      updateBinderBookState();
+      renderTracklist();
+    }
+
+    // Navigation & Gesture Listeners
+    const prevDiscBtn = document.getElementById("prevDiscBtn");
+    const nextDiscBtn = document.getElementById("nextDiscBtn");
+    if (prevDiscBtn) {
+      prevDiscBtn.addEventListener("click", () => {
+        if (currentViewMode === "binder") turnBinderPage(-1);
+        else selectDisc(activeIndex - 1);
+      });
+    }
+    if (nextDiscBtn) {
+      nextDiscBtn.addEventListener("click", () => {
+        if (currentViewMode === "binder") turnBinderPage(1);
+        else selectDisc(activeIndex + 1);
+      });
+    }
+
+    let touchStartX = 0;
+    let isMouseDragging = false;
+    if (stageEl) {
+      stageEl.addEventListener("touchstart", e => {
+        touchStartX = e.changedTouches[0].clientX;
+      }, { passive: true });
+      stageEl.addEventListener("touchend", e => {
+        const dx = e.changedTouches[0].clientX - touchStartX;
+        if (Math.abs(dx) > 32) {
+          const step = dx < 0 ? 1 : -1;
+          if (currentViewMode === "binder") turnBinderPage(step);
+          else selectDisc(activeIndex + step);
+        }
+      }, { passive: true });
+      stageEl.addEventListener("mousedown", e => {
+        isMouseDragging = true;
+        touchStartX = e.clientX;
+      });
+      window.addEventListener("mouseup", e => {
+        if (!isMouseDragging) return;
+        isMouseDragging = false;
+        const dx = e.clientX - touchStartX;
+        if (Math.abs(dx) > 36) {
+          const step = dx < 0 ? 1 : -1;
+          if (currentViewMode === "binder") turnBinderPage(step);
+          else selectDisc(activeIndex + step);
+        }
+      });
+    }
+
+    // Graphic-Only 3-Mode Animation Switcher Events
+    if (animModeBtn && animModeMenu) {
+      animModeBtn.addEventListener("click", e => {
+        e.stopPropagation();
+        const isOpen = !animModeMenu.classList.contains("hidden");
+        animModeMenu.classList.toggle("hidden", isOpen);
+        animModeMenu.classList.toggle("flex", !isOpen);
+        animModeBtn.setAttribute("aria-expanded", String(!isOpen));
+      });
+
+      animModeBtn.addEventListener("dblclick", e => {
+        e.stopPropagation();
+        try { localStorage.removeItem(VIEW_MODE_STORAGE_KEY); } catch (_) {}
+        syncViewModeWithOrientation();
+        animModeMenu.classList.add("hidden");
+        animModeMenu.classList.remove("flex");
+        animModeBtn.setAttribute("aria-expanded", "false");
+        showToast("Auto orientation mode restored");
+      });
+
+      animModeOptionEls.forEach(opt => {
+        opt.addEventListener("click", e => {
+          e.stopPropagation();
+          applyViewMode(opt.dataset.mode, true);
+          animModeMenu.classList.add("hidden");
+          animModeMenu.classList.remove("flex");
+          animModeBtn.setAttribute("aria-expanded", "false");
+        });
+      });
+
+      document.addEventListener("click", e => {
+        if (!animModeMenu.classList.contains("hidden") && !e.target.closest("#animModeSwitcher")) {
+          animModeMenu.classList.add("hidden");
+          animModeMenu.classList.remove("flex");
+          animModeBtn.setAttribute("aria-expanded", "false");
+        }
+      });
+    }
+
+    // Search & Share Handlers
+    if (searchInputEl) {
+      searchInputEl.addEventListener("input", e => {
+        searchQuery = e.target.value;
+        if (clearSearchBtn) clearSearchBtn.classList.toggle("hidden", !searchQuery);
+        renderSearchResults();
+      });
+    }
+    if (clearSearchBtn) {
+      clearSearchBtn.addEventListener("click", () => {
+        searchQuery = "";
+        if (searchInputEl) searchInputEl.value = "";
+        clearSearchBtn.classList.add("hidden");
+        renderSearchResults();
+      });
+    }
+
+    const copyLinkBtn = document.getElementById("copyLinkBtn");
+    if (copyLinkBtn) {
+      copyLinkBtn.addEventListener("click", () => {
+        const url = new URL(window.location.href);
+        url.searchParams.set("disc", String(activeIndex + 1));
+        const shareStr = url.toString();
+        const inp = document.createElement("input");
+        inp.value = shareStr;
+        document.body.appendChild(inp);
+        inp.select();
+        document.execCommand("copy");
+        document.body.removeChild(inp);
+        showToast(`Copied link for ${DISCS[activeIndex].code}`);
+      });
+    }
+
+    const fullscreenBtn = document.getElementById("fullscreenBtn");
+    if (fullscreenBtn) {
+      fullscreenBtn.addEventListener("click", () => {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen?.().catch(() => showToast("Use browser Add to Home Screen for fullscreen"));
+        } else {
+          document.exitFullscreen?.();
+        }
+      });
+    }
+
+    // Admin Editor Handlers
     const targetDiscSelect = document.getElementById("importTargetDisc");
     const importTitleInput = document.getElementById("importDiscTitle");
     const importTextarea = document.getElementById("importTextarea");
 
     function populateModalSelect() {
+      if (!targetDiscSelect) return;
       targetDiscSelect.innerHTML = DISCS.map((d, i) => `<option value="${i}">${d.code} (${escapeHtml(d.title)})</option>`).join("");
     }
 
     function loadDiscIntoEditor(idx) {
       const d = DISCS[idx];
-      importTitleInput.value = d.title;
-      importTextarea.value = d.tracks.join("\n");
+      if (!d) return;
+      if (importTitleInput) importTitleInput.value = d.title;
+      if (importTextarea) importTextarea.value = d.tracks.join("\n");
     }
 
-    openImportBtn.addEventListener("click", () => {
-      if (window.location.hash.toLowerCase() !== "#admin") return;
-      populateModalSelect();
-      targetDiscSelect.value = String(activeIndex);
-      loadDiscIntoEditor(activeIndex);
-      importModal.classList.remove("hidden");
-      importModal.classList.add("flex");
-    });
+    if (openImportBtn && importModal) {
+      openImportBtn.addEventListener("click", () => {
+        if (window.location.hash.toLowerCase() !== "#admin") return;
+        populateModalSelect();
+        if (targetDiscSelect) targetDiscSelect.value = String(activeIndex);
+        loadDiscIntoEditor(activeIndex);
+        importModal.classList.remove("hidden");
+        importModal.classList.add("flex");
+      });
+    }
 
-    document.getElementById("closeImportBtn").addEventListener("click", () => {
-      importModal.classList.add("hidden");
-      importModal.classList.remove("flex");
-    });
+    const closeImportBtn = document.getElementById("closeImportBtn");
+    if (closeImportBtn && importModal) {
+      closeImportBtn.addEventListener("click", () => {
+        importModal.classList.add("hidden");
+        importModal.classList.remove("flex");
+      });
+    }
 
-    targetDiscSelect.addEventListener("change", e => loadDiscIntoEditor(Number(e.target.value)));
+    if (targetDiscSelect) {
+      targetDiscSelect.addEventListener("change", e => loadDiscIntoEditor(Number(e.target.value)));
+    }
 
-    document.getElementById("saveImportBtn").addEventListener("click", () => {
-      const idx = Number(targetDiscSelect.value);
-      const lines = importTextarea.value.split(/\r?\n/).map(l => l.replace(/^.*\\/, "").replace(/\.mp3$/i, "").trim()).filter(Boolean);
-      if (importTitleInput.value.trim()) DISCS[idx].title = importTitleInput.value.trim();
-      if (lines.length) DISCS[idx].tracks = lines;
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(DISCS)); } catch (_) {}
-      importModal.classList.add("hidden");
-      importModal.classList.remove("flex");
-      buildCarouselDom();
-      selectDisc(idx);
-      showToast(`Saved ${DISCS[idx].code} (${DISCS[idx].tracks.length} tracks)`);
-    });
+    const saveImportBtn = document.getElementById("saveImportBtn");
+    if (saveImportBtn) {
+      saveImportBtn.addEventListener("click", () => {
+        const idx = Number(targetDiscSelect.value);
+        const lines = importTextarea.value.split(/\r?\n/).map(l => l.replace(/^.*\\/, "").replace(/\.mp3$/i, "").trim()).filter(Boolean);
+        if (importTitleInput.value.trim()) DISCS[idx].title = importTitleInput.value.trim();
+        if (lines.length) DISCS[idx].tracks = lines;
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(DISCS)); } catch (_) {}
+        importModal.classList.add("hidden");
+        importModal.classList.remove("flex");
+        renderTabs();
+        renderDiscs();
+        selectDisc(idx);
+        showToast(`Saved ${DISCS[idx].code} (${DISCS[idx].tracks.length} tracks)`);
+      });
+    }
 
-    document.getElementById("resetStorageBtn").addEventListener("click", () => {
-      try { localStorage.removeItem(STORAGE_KEY); } catch (_) {}
-      DISCS = JSON.parse(JSON.stringify(DEFAULT_DISCS));
-      importModal.classList.add("hidden");
-      importModal.classList.remove("flex");
-      buildCarouselDom();
-      selectDisc(activeIndex);
-      showToast("Reset all discs to default");
-    });
+    const resetStorageBtn = document.getElementById("resetStorageBtn");
+    if (resetStorageBtn) {
+      resetStorageBtn.addEventListener("click", () => {
+        try { localStorage.removeItem(STORAGE_KEY); } catch (_) {}
+        DISCS = JSON.parse(JSON.stringify(DEFAULT_DISCS));
+        importModal.classList.add("hidden");
+        importModal.classList.remove("flex");
+        renderTabs();
+        renderDiscs();
+        selectDisc(activeIndex);
+        showToast("Reset all discs to default");
+      });
+    }
 
-    document.getElementById("photoUploadInput").addEventListener("change", e => {
-      const file = e.target.files[0];
-      if (!file) return;
-      const target = document.getElementById("photoTargetSelect").value;
-      const reader = new FileReader();
-      reader.onload = ev => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement("canvas");
-          canvas.width = 500;
-          canvas.height = 500;
-          const ctx = canvas.getContext("2d");
-          const size = Math.min(img.width, img.height);
-          const sx = (img.width - size) / 2;
-          const sy = (img.height - size) / 2;
-          ctx.drawImage(img, sx, sy, size, size, 0, 0, 500, 500);
-          lastGeneratedDataUrl = canvas.toDataURL("image/jpeg", 0.86);
-          if (target === "retail") {
-            DISCS[0].artUrl = lastGeneratedDataUrl;
-            document.getElementById("dataUrlStatus").textContent = "Disc 01 (dj-sebi.jpg) 500×500 ready";
-            buildCarouselDom();
-            selectDisc(0);
-            showToast("Applied photo to Disc 01!");
-          } else {
-            DISCS.forEach(d => { if (!d.isRetail) d.artUrl = lastGeneratedDataUrl; });
-            document.getElementById("dataUrlStatus").textContent = "Discs 02–16 (maxell.jpg) 500×500 ready";
-            buildCarouselDom();
-            selectDisc(activeIndex === 0 ? 1 : activeIndex);
-            showToast("Applied Maxell photo to Discs 02–16!");
-          }
-          try { localStorage.setItem(STORAGE_KEY, JSON.stringify(DISCS)); } catch (_) {}
-          document.getElementById("dataUrlRow").classList.remove("hidden");
+    const photoUploadInput = document.getElementById("photoUploadInput");
+    if (photoUploadInput) {
+      photoUploadInput.addEventListener("change", e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const target = document.getElementById("photoTargetSelect").value;
+        const reader = new FileReader();
+        reader.onload = ev => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            canvas.width = 500;
+            canvas.height = 500;
+            const ctx = canvas.getContext("2d");
+            const size = Math.min(img.width, img.height);
+            const sx = (img.width - size) / 2;
+            const sy = (img.height - size) / 2;
+            ctx.drawImage(img, sx, sy, size, size, 0, 0, 500, 500);
+            lastGeneratedDataUrl = canvas.toDataURL("image/jpeg", 0.86);
+            if (target === "retail") {
+              DISCS[0].artUrl = lastGeneratedDataUrl;
+              document.getElementById("dataUrlStatus").textContent = "Disc 01 (dj-sebi.jpg) 500×500 ready";
+              renderDiscs();
+              selectDisc(0);
+              showToast("Applied photo to Disc 01!");
+            } else {
+              DISCS.forEach(d => { if (!d.isRetail) d.artUrl = lastGeneratedDataUrl; });
+              document.getElementById("dataUrlStatus").textContent = "Discs 02–16 (maxell.jpg) 500×500 ready";
+              renderDiscs();
+              selectDisc(activeIndex === 0 ? 1 : activeIndex);
+              showToast("Applied Maxell photo to Discs 02–16!");
+            }
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(DISCS)); } catch (_) {}
+            document.getElementById("dataUrlRow").classList.remove("hidden");
+          };
+          img.src = ev.target.result;
         };
-        img.src = ev.target.result;
-      };
-      reader.readAsDataURL(file);
-    });
+        reader.readAsDataURL(file);
+      });
+    }
 
-    document.getElementById("copyDataUrlBtn").addEventListener("click", () => {
-      if (!lastGeneratedDataUrl) return;
-      const inp = document.createElement("input");
-      inp.value = lastGeneratedDataUrl;
-      document.body.appendChild(inp);
-      inp.select();
-      document.execCommand("copy");
-      document.body.removeChild(inp);
-      showToast("Copied 500×500 Data URL!");
-    });
+    const copyDataUrlBtn = document.getElementById("copyDataUrlBtn");
+    if (copyDataUrlBtn) {
+      copyDataUrlBtn.addEventListener("click", () => {
+        if (!lastGeneratedDataUrl) return;
+        const inp = document.createElement("input");
+        inp.value = lastGeneratedDataUrl;
+        document.body.appendChild(inp);
+        inp.select();
+        document.execCommand("copy");
+        document.body.removeChild(inp);
+        showToast("Copied 500×500 Data URL!");
+      });
+    }
 
     window.addEventListener("resize", () => {
-      syncAnimationModeWithOrientation();
+      syncViewModeWithOrientation();
       applyTrackMarquees(searchQuery.trim() ? globalResultsEl : trackContainerEl);
     });
     window.addEventListener("orientationchange", () => {
       setTimeout(() => {
-        syncAnimationModeWithOrientation();
+        syncViewModeWithOrientation();
         applyTrackMarquees(searchQuery.trim() ? globalResultsEl : trackContainerEl);
       }, 120);
     });
 
     window.addEventListener("DOMContentLoaded", () => {
       syncAdminMode();
-      syncAnimationModeWithOrientation();
-      buildCarouselDom();
+      syncViewModeWithOrientation();
+      renderTabs();
+      renderDiscs();
       const params = new URLSearchParams(window.location.search);
       const discParam = parseInt(params.get("disc"), 10);
       if (!isNaN(discParam) && discParam >= 1 && discParam <= DISCS.length) {
