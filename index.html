@@ -7,7 +7,37 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="theme-color" content="#0a0e0c" />
-  <link rel="manifest" href='data:application/manifest+json,{"name":"Octavia MP3 Binder","short_name":"CD Binder","start_url":".","display":"standalone","orientation":"any","background_color":"#07090b","theme_color":"#0a0e0c"}' />
+  <!-- Custom Home Screen & Browser Icons routed to ./maxell.jpg -->
+  <link rel="apple-touch-icon" sizes="180x180" href="./maxell.jpg" />
+  <link rel="icon" type="image/jpeg" href="./maxell.jpg" />
+  <link id="pwaManifestLink" rel="manifest" href="" />
+  <script>
+    // Dynamically generate an absolute-URL Web App Manifest so Android Chrome resolves ./maxell.jpg reliably
+    (function () {
+      try {
+        const iconUrl = new URL("./maxell.jpg", window.location.href).href;
+        const startUrl = new URL(".", window.location.href).href;
+        const manifest = {
+          name: "Octavia MP3 Binder",
+          short_name: "CD Binder",
+          start_url: startUrl,
+          scope: startUrl,
+          display: "standalone",
+          orientation: "any",
+          background_color: "#07090b",
+          theme_color: "#0a0e0c",
+          icons: [
+            { src: iconUrl, sizes: "192x192", type: "image/jpeg", purpose: "any maskable" },
+            { src: iconUrl, sizes: "512x512", type: "image/jpeg", purpose: "any maskable" }
+          ]
+        };
+        const blob = new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" });
+        document.getElementById("pwaManifestLink").setAttribute("href", URL.createObjectURL(blob));
+      } catch (e) {
+        console.warn("Manifest generation skipped:", e);
+      }
+    })();
+  </script>
   <title>Škoda Octavia • MP3 CD Binder</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
@@ -208,12 +238,12 @@
     .yt-link, .playlist-link { touch-action: manipulation; cursor: pointer; }
 
     /* =========================================================================
-       EXPANDED CAROUSEL LANDSCAPE MODE (46% Tracklist / 54% Disc Stage)
+       EXPANDED CAROUSEL LANDSCAPE MODE (40% Tracklist / 60% Disc Stage)
        ========================================================================= */
     @media (orientation: landscape) and (max-height: 580px) {
       body { height: 100dvh; overflow: hidden; }
       #appShell { height: 100dvh; max-width: 100%; display: flex; flex-direction: column; overflow: hidden; }
-      #landscapeWorkspace { flex: 1; min-height: 0; display: grid; grid-template-columns: 46% 54%; overflow: hidden; }
+      #landscapeWorkspace { flex: 1; min-height: 0; display: grid; grid-template-columns: 40% 60%; overflow: hidden; }
       #tracklistColumn { order: 1; height: 100%; display: flex; flex-direction: column; border-right: 1px solid #1f2e2a; overflow: hidden; }
       #tracklistScrollArea { flex: 1; overflow-y: auto; padding-bottom: 1rem; }
       #carouselColumn { order: 2; height: 100%; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; border-bottom: none; padding: 0.5rem 0.75rem; }
@@ -221,24 +251,24 @@
         flex: 1;
         height: auto !important;
         min-height: 0;
-        --disc-size: clamp(185px, 46vh, 255px);
-        --step-1: clamp(130px, 31vh, 175px);
-        --step-2: clamp(210px, 50vh, 280px);
-        --step-3: 350px;
+        --disc-size: clamp(205px, 54vh, 285px);
+        --step-1: clamp(148px, 37vh, 200px);
+        --step-2: clamp(240px, 58vh, 320px);
+        --step-3: 410px;
       }
     }
 
     @media (min-width: 900px) and (orientation: landscape) and (min-height: 581px) {
-      #appShell { max-width: 1120px; }
-      #landscapeWorkspace { display: grid; grid-template-columns: 46% 54%; gap: 0; border-left: 1px solid #1f2e2a; border-right: 1px solid #1f2e2a; }
+      #appShell { max-width: 1180px; }
+      #landscapeWorkspace { display: grid; grid-template-columns: 40% 60%; gap: 0; border-left: 1px solid #1f2e2a; border-right: 1px solid #1f2e2a; }
       #tracklistColumn { order: 1; border-right: 1px solid #1f2e2a; max-height: calc(100vh - 52px); }
       #carouselColumn { order: 2; border-bottom: none; justify-content: center; gap: 1rem; }
       #carouselStage {
-        height: 290px !important;
-        --disc-size: 245px;
-        --step-1: 168px;
-        --step-2: 270px;
-        --step-3: 340px;
+        height: 320px !important;
+        --disc-size: 275px;
+        --step-1: 192px;
+        --step-2: 305px;
+        --step-3: 390px;
       }
     }
   </style>
@@ -284,7 +314,7 @@
     <!-- Main Responsive Workspace -->
     <main id="landscapeWorkspace" class="flex-1 flex flex-col">
 
-      <!-- 3D CD Carousel Section (Top in Portrait, Expanded 54% Right Pane in Landscape) -->
+      <!-- 3D CD Carousel Section (Top in Portrait, Expanded 60% Right Pane in Landscape) -->
       <section id="carouselColumn" class="bg-gradient-to-b from-skoda-panel to-skoda-bg border-b border-skoda-border px-3 py-2.5">
         <div class="flex items-center justify-between text-[10px] font-mono text-slate-400 shrink-0">
           <span>← SWIPE SLEEVES →</span>
@@ -309,7 +339,7 @@
         </div>
       </section>
 
-      <!-- Tracklist & Search Section (Bottom in Portrait, 46% Left Pane in Landscape) -->
+      <!-- Tracklist & Search Section (Bottom in Portrait, 40% Left Pane in Landscape) -->
       <section id="tracklistColumn" class="flex-1 flex flex-col min-h-0">
         <!-- Search & Active Disc Header -->
         <div class="p-3 bg-skoda-bg/95 border-b border-skoda-border space-y-2 shrink-0">
