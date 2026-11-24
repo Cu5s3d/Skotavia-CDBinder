@@ -41,7 +41,7 @@
     .cd-disc.active-glow { box-shadow: 0 22px 45px rgba(0, 0, 0, 0.85), 0 0 26px rgba(75, 168, 46, 0.32), inset 0 0 0 2px rgba(104, 211, 72, 0.45); }
     .cd-sheen {
       position: absolute; inset: 0; border-radius: 50%; pointer-events: none; z-index: 3;
-      background: linear-gradient(125deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.03) 36%, transparent 55%, rgba(104,211,72,0.12) 100%);
+      background: linear-gradient(125deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.02) 36%, transparent 55%, rgba(104,211,72,0.10) 100%);
     }
     .cd-hub {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
@@ -49,14 +49,20 @@
       background: radial-gradient(circle, #07090b 35%, rgba(220,235,230,0.22) 37%, rgba(18,26,24,0.85) 68%, rgba(255,255,255,0.25) 70%, transparent 74%);
       box-shadow: inset 0 0 8px rgba(0,0,0,0.85);
     }
-    .cd-art { position: absolute; inset: 0; border-radius: 50%; background-size: cover; background-position: center; z-index: 1; }
+    .cd-art {
+      position: absolute; inset: 0; border-radius: 50%;
+      background-size: cover !important;
+      background-position: center !important;
+      background-repeat: no-repeat !important;
+      z-index: 2;
+    }
     .retail-fallback {
       background: radial-gradient(circle at 35% 35%, #5b5239 0%, #3a3423 55%, #1e1b13 100%);
     }
     .burned-label-pill {
-      background: rgba(7, 9, 11, 0.62);
+      background: rgba(7, 9, 11, 0.65);
       backdrop-filter: blur(2px);
-      border: 1px solid rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.16);
       text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95);
     }
     .yt-link, .playlist-link { touch-action: manipulation; cursor: pointer; }
@@ -99,8 +105,9 @@
             </svg>
           </button>
 
+          <!-- Hidden by default for public passengers; unlocked only via #admin -->
           <button id="openImportBtn" type="button"
-            class="px-2.5 py-1.5 rounded-lg bg-skoda-card hover:bg-skoda-border border border-skoda-border text-[11px] font-medium text-slate-200 flex items-center gap-1.5 active:scale-95 transition">
+            class="hidden px-2.5 py-1.5 rounded-lg bg-skoda-card hover:bg-skoda-border border border-skoda-border text-[11px] font-medium text-slate-200 items-center gap-1.5 active:scale-95 transition">
             <svg class="w-3.5 h-3.5 text-skoda-glow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
             </svg>
@@ -157,7 +164,7 @@
                 <span id="activeDiscBadge" class="px-1.5 py-0.5 rounded bg-skoda-green/20 border border-skoda-green/40 text-skoda-glow font-mono text-[10px] font-bold">DISC 01</span>
                 <h2 id="activeDiscTitle" class="text-xs sm:text-sm font-bold text-white truncate">DJ Sebi — Locul tau in inima mea</h2>
               </div>
-              <p id="activeDiscSubtitle" class="text-[11px] text-slate-400 mt-0.5 truncate">2 videoclipuri • Pressed CD</p>
+              <p id="activeDiscSubtitle" class="text-[11px] text-slate-400 mt-0.5 truncate">Pressed Audio CD • 10 Tracks</p>
             </div>
 
             <div class="flex items-center gap-1.5 shrink-0">
@@ -185,11 +192,14 @@
   <!-- Toast Banner -->
   <div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 px-3.5 py-2 rounded-xl bg-skoda-card border border-skoda-green/60 text-xs text-white shadow-xl opacity-0 pointer-events-none transition-opacity duration-200"></div>
 
-  <!-- Edit Lists & Photo Cropper Modal -->
+  <!-- Admin-Only Edit Lists & Photo Cropper Modal -->
   <div id="importModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-3">
     <div class="bg-skoda-panel border border-skoda-border rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
       <div class="flex items-center justify-between px-4 py-3 border-b border-skoda-border">
-        <h3 class="text-sm font-bold text-white">Edit Disc Tracklist & Disc 01 Cover</h3>
+        <div class="flex items-center gap-2">
+          <span class="px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/40 text-amber-300 font-mono text-[10px] font-bold">ADMIN</span>
+          <h3 class="text-sm font-bold text-white">Edit Disc Tracklist & Cover Photos</h3>
+        </div>
         <button id="closeImportBtn" type="button" class="text-slate-400 hover:text-white text-sm px-2">✕</button>
       </div>
       <div class="p-4 space-y-3">
@@ -198,7 +208,7 @@
           <div class="flex items-center justify-between gap-2">
             <div class="min-w-0">
               <p class="text-xs font-semibold text-white">CD Surface Photo Tester</p>
-              <p class="text-[10px] text-slate-400">Preview square-cropped <code class="text-slate-300">dj-sebi.jpg</code> or <code class="text-slate-300">maxell.jpg</code> (applied to Discs 02–16).</p>
+              <p class="text-[10px] text-slate-400">Preview square-cropped <code class="text-slate-300">dj-sebi.jpg</code> or <code class="text-slate-300">maxell.jpg</code> (Discs 02–16).</p>
             </div>
             <div class="flex items-center gap-1.5 shrink-0">
               <select id="photoTargetSelect" class="bg-skoda-panel border border-skoda-border rounded-lg px-2 py-1.5 text-[10px] font-mono text-white outline-none focus:border-skoda-green">
@@ -224,37 +234,36 @@
         </div>
         <textarea id="importTextarea" rows="7" placeholder="Paste CDBurnerXP tracklist (one track per line)..."
           class="w-full bg-skoda-card border border-skoda-border rounded-xl p-3 text-xs font-mono text-slate-200 outline-none focus:border-skoda-green"></textarea>
-        <div class="flex justify-end gap-2">
+        <div class="flex justify-between items-center gap-2">
+          <button id="resetStorageBtn" type="button" class="px-3 py-2 rounded-xl bg-skoda-card hover:bg-red-950/60 border border-skoda-border text-xs text-slate-300 transition">Reset Overrides</button>
           <button id="saveImportBtn" type="button" class="px-4 py-2 rounded-xl bg-skoda-green hover:bg-skoda-glow/90 text-white text-xs font-bold transition">Apply to Disc</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Safe JSON Data Store (All 16 Discs • 1,241 Tracks) -->
+  <!-- Safe JSON Data Store (All 16 Discs • 1,251 Tracks) -->
   <script type="application/json" id="disc-data">
 [
   {
     "id": 1,
     "code": "DISC 01",
     "title": "DJ Sebi — Locul tau in inima mea",
-    "subtitle": "2 videoclipuri • Pressed CD",
+    "subtitle": "Pressed Audio CD • Total Studio",
     "isRetail": true,
     "artUrl": "./dj-sebi.jpg",
     "playlistUrl": "",
     "tracks": [
-      "Intro - Locul tau in inima mea",
-      "Track 02",
-      "Track 03",
-      "Track 04",
-      "Track 05",
-      "Track 06",
-      "Track 07",
-      "Track 08",
-      "Track 09",
-      "Track 10",
-      "Videoclip 1 (Bonus Video)",
-      "Videoclip 2 (Bonus Video)"
+      "DJ Sebi - Locul Tau In Inima Me",
+      "DJ Sebi - Garda De Fier",
+      "DJ Sebi - Cine, Cine",
+      "DJ Sebi - S-au Dus Anii",
+      "DJ Sebi - Cu Smecherii",
+      "DJ Sebi - Astazi Stau Si Plang (HOUSE)",
+      "DJ Sebi - Privirea Ta",
+      "DJ Sebi - Baiatul Meu",
+      "DJ Sebi - Dor In Inima Mea",
+      "DJ Sebi - Haide Mana Sus"
     ]
   },
   {
@@ -1655,12 +1664,27 @@
   </script>
 
   <script>
-    let DISCS = [];
+    const STORAGE_KEY = "octavia_cd_binder_v16_final";
+    let DEFAULT_DISCS = [];
     try {
-      DISCS = JSON.parse(document.getElementById("disc-data").textContent);
+      DEFAULT_DISCS = JSON.parse(document.getElementById("disc-data").textContent);
     } catch (e) {
       console.error("Failed to parse disc JSON:", e);
     }
+
+    // Purge any stale legacy keys and load v16 overrides if saved in #admin mode
+    try {
+      ["octavia_cd_binder_v1", "octavia_cd_binder_v6", "octavia_cd_binder_discs"].forEach(k => localStorage.removeItem(k));
+    } catch (_) {}
+
+    let DISCS = JSON.parse(JSON.stringify(DEFAULT_DISCS));
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length === DEFAULT_DISCS.length) DISCS = parsed;
+      }
+    } catch (_) {}
 
     let activeIndex = 0;
     let searchQuery = "";
@@ -1689,6 +1713,23 @@
     const searchInputEl = document.getElementById("searchInput");
     const clearSearchBtn = document.getElementById("clearSearchBtn");
     const toastEl = document.getElementById("toast");
+    const openImportBtn = document.getElementById("openImportBtn");
+    const importModal = document.getElementById("importModal");
+
+    // Public Read-Only Mode vs. Hidden #admin Toggle
+    function syncAdminMode() {
+      const isAdmin = window.location.hash.toLowerCase() === "#admin";
+      if (isAdmin) {
+        openImportBtn.classList.remove("hidden");
+        openImportBtn.classList.add("flex");
+      } else {
+        openImportBtn.classList.add("hidden");
+        openImportBtn.classList.remove("flex");
+        importModal.classList.add("hidden");
+        importModal.classList.remove("flex");
+      }
+    }
+    window.addEventListener("hashchange", syncAdminMode);
 
     function showToast(msg) {
       toastEl.textContent = msg;
@@ -1756,24 +1797,31 @@
         discEl.style.height = `${baseSize}px`;
 
         if (disc.isRetail) {
+          // Pressed retail CD: render ./dj-sebi.jpg edge-to-edge on top with zero overlaid label text
           const art = document.createElement("div");
           art.className = "cd-art disc-custom-photo retail-fallback flex flex-col items-center justify-between py-3 px-4 text-center";
-          const fallbackMarkup = `
-            <span class="text-[8px] font-bold tracking-wider text-amber-100/90 uppercase drop-shadow">2 videoclipuri</span>
+          art.innerHTML = `
+            <span class="text-[8px] font-bold tracking-wider text-amber-100/90 uppercase drop-shadow">Total Studio</span>
             <div class="mt-auto mb-1">
               <div class="text-xs font-black italic tracking-wide text-white drop-shadow">DJ SEBI</div>
               <div class="text-[8px] italic text-amber-200/90">Locul tau in inima mea</div>
             </div>
           `;
-          art.innerHTML = fallbackMarkup;
-          checkImageAvailability(disc.artUrl, loaded => {
-            if (loaded) {
-              art.style.backgroundImage = `url("${disc.artUrl}")`;
-              art.innerHTML = "";
-            }
-          });
+          if (disc.artUrl) {
+            art.style.backgroundImage = `url("${disc.artUrl}")`;
+            checkImageAvailability(disc.artUrl, loaded => {
+              if (loaded) {
+                art.classList.remove("retail-fallback");
+                art.style.backgroundImage = `url("${disc.artUrl}")`;
+                art.innerHTML = "";
+              } else {
+                art.style.backgroundImage = "";
+              }
+            });
+          }
           discEl.appendChild(art);
         } else {
+          // Burned CD-R: ./maxell.jpg surface with dynamic disc title & track count overlaid on the bottom lines
           const art = document.createElement("div");
           art.className = "cd-art disc-custom-photo";
           discEl.appendChild(art);
@@ -1789,15 +1837,17 @@
           `;
           discEl.appendChild(label);
 
-          checkImageAvailability(disc.artUrl, loaded => {
-            if (loaded) {
-              art.style.backgroundImage = `url("${disc.artUrl}")`;
-              const topText = label.querySelector(".maxell-top-text");
-              if (topText) topText.classList.add("opacity-0");
-              const pill = label.querySelector("div.mt-auto");
-              if (pill) pill.classList.add("burned-label-pill");
-            }
-          });
+          if (disc.artUrl) {
+            checkImageAvailability(disc.artUrl, loaded => {
+              if (loaded) {
+                art.style.backgroundImage = `url("${disc.artUrl}")`;
+                const topText = label.querySelector(".maxell-top-text");
+                if (topText) topText.classList.add("opacity-0");
+                const pill = label.querySelector("div.mt-auto");
+                if (pill) pill.classList.add("burned-label-pill");
+              }
+            });
+          }
         }
 
         const sheen = document.createElement("div");
@@ -1939,7 +1989,7 @@
       renderSearchResults();
     });
 
-    // Share Link
+    // Share Link (never includes #admin)
     document.getElementById("copyLinkBtn").addEventListener("click", () => {
       const shareUrl = `${window.location.origin}${window.location.pathname}?disc=${activeIndex + 1}`;
       const inp = document.createElement("input");
@@ -1968,8 +2018,7 @@
       }
     });
 
-    // Modal & Photo Cropper Logic
-    const importModal = document.getElementById("importModal");
+    // Admin Modal & Photo Cropper Logic
     const targetDiscSelect = document.getElementById("importTargetDisc");
     const importTitleInput = document.getElementById("importDiscTitle");
     const importTextarea = document.getElementById("importTextarea");
@@ -1984,7 +2033,8 @@
       importTextarea.value = d.tracks.join("\n");
     }
 
-    document.getElementById("openImportBtn").addEventListener("click", () => {
+    openImportBtn.addEventListener("click", () => {
+      if (window.location.hash.toLowerCase() !== "#admin") return;
       populateModalSelect();
       targetDiscSelect.value = String(activeIndex);
       loadDiscIntoEditor(activeIndex);
@@ -2004,10 +2054,20 @@
       const lines = importTextarea.value.split(/\r?\n/).map(l => l.replace(/^.*\\/, "").replace(/\.mp3$/i, "").trim()).filter(Boolean);
       if (importTitleInput.value.trim()) DISCS[idx].title = importTitleInput.value.trim();
       if (lines.length) DISCS[idx].tracks = lines;
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(DISCS)); } catch (_) {}
       importModal.classList.add("hidden");
       importModal.classList.remove("flex");
       selectDisc(idx);
-      showToast(`Updated ${DISCS[idx].code} (${DISCS[idx].tracks.length} tracks)`);
+      showToast(`Saved ${DISCS[idx].code} (${DISCS[idx].tracks.length} tracks)`);
+    });
+
+    document.getElementById("resetStorageBtn").addEventListener("click", () => {
+      try { localStorage.removeItem(STORAGE_KEY); } catch (_) {}
+      DISCS = JSON.parse(JSON.stringify(DEFAULT_DISCS));
+      importModal.classList.add("hidden");
+      importModal.classList.remove("flex");
+      selectDisc(activeIndex);
+      showToast("Reset all discs to default");
     });
 
     document.getElementById("photoUploadInput").addEventListener("change", e => {
@@ -2038,6 +2098,7 @@
             selectDisc(activeIndex === 0 ? 1 : activeIndex);
             showToast("Applied Maxell photo to Discs 02–16!");
           }
+          try { localStorage.setItem(STORAGE_KEY, JSON.stringify(DISCS)); } catch (_) {}
           document.getElementById("dataUrlRow").classList.remove("hidden");
         };
         img.src = ev.target.result;
@@ -2059,6 +2120,7 @@
     // Init & URL ?disc= Deep-Linking
     window.addEventListener("resize", renderCarousel);
     window.addEventListener("DOMContentLoaded", () => {
+      syncAdminMode();
       const params = new URLSearchParams(window.location.search);
       const discParam = parseInt(params.get("disc"), 10);
       if (!isNaN(discParam) && discParam >= 1 && discParam <= DISCS.length) {
