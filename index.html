@@ -7,34 +7,91 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="theme-color" content="#0a0e0c" />
-  <!-- Custom Home Screen & Browser Icons routed to ./maxell.jpg -->
-  <link rel="apple-touch-icon" sizes="180x180" href="./maxell.jpg" />
-  <link rel="icon" type="image/jpeg" href="./maxell.jpg" />
+  <!-- Custom Home Screen & Browser Icons routed to ./icon.png (auto-scaled to 90% safe zone on load) -->
+  <link id="appleTouchIconLink" rel="apple-touch-icon" sizes="180x180" href="./icon.png" />
+  <link id="faviconLink" rel="icon" type="image/png" href="./icon.png" />
   <link id="pwaManifestLink" rel="manifest" href="" />
   <script>
-    // Dynamically generate an absolute-URL Web App Manifest so Android Chrome resolves ./maxell.jpg reliably
+    // Dynamically render ./icon.png at 90% scale onto a transparent 512x512 canvas
+    // so Android adaptive masks (squircle/circle) & iOS rounded corners never clip the CD edge.
     (function () {
+      const startUrl = new URL(".", window.location.href).href;
+      const primaryIconUrl = new URL("./icon.png", window.location.href).href;
+      const fallbackIconUrl = new URL("./maxell.jpg", window.location.href).href;
+
+      function applyManifest(resolvedIconSrc, mimeType) {
+        try {
+          const manifest = {
+            name: "Octavia MP3 Binder",
+            short_name: "CD Binder",
+            start_url: startUrl,
+            scope: startUrl,
+            display: "standalone",
+            orientation: "any",
+            background_color: "#07090b",
+            theme_color: "#0a0e0c",
+            icons: [
+              { src: resolvedIconSrc, sizes: "192x192", type: mimeType, purpose: "any maskable" },
+              { src: resolvedIconSrc, sizes: "512x512", type: mimeType, purpose: "any maskable" }
+            ]
+          };
+          const blob = new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" });
+          const manifestLink = document.getElementById("pwaManifestLink");
+          if (manifestLink) manifestLink.setAttribute("href", URL.createObjectURL(blob));
+        } catch (err) {
+          console.warn("Manifest generation skipped:", err);
+        }
+      }
+
+      // Apply immediate manifest with ./icon.png while offscreen 90% scaler runs
+      applyManifest(primaryIconUrl, "image/png");
+
       try {
-        const iconUrl = new URL("./maxell.jpg", window.location.href).href;
-        const startUrl = new URL(".", window.location.href).href;
-        const manifest = {
-          name: "Octavia MP3 Binder",
-          short_name: "CD Binder",
-          start_url: startUrl,
-          scope: startUrl,
-          display: "standalone",
-          orientation: "any",
-          background_color: "#07090b",
-          theme_color: "#0a0e0c",
-          icons: [
-            { src: iconUrl, sizes: "192x192", type: "image/jpeg", purpose: "any maskable" },
-            { src: iconUrl, sizes: "512x512", type: "image/jpeg", purpose: "any maskable" }
-          ]
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = function () {
+          try {
+            const size = 512;
+            const scale = 0.90;
+            const drawSize = size * scale; // 460.8px
+            const offset = (size - drawSize) / 2; // 25.6px transparent safe margin on all sides
+
+            const canvas = document.createElement("canvas");
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, size, size);
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = "high";
+            ctx.drawImage(img, offset, offset, drawSize, drawSize);
+
+            const paddedPngUrl = canvas.toDataURL("image/png");
+            const appleLink = document.getElementById("appleTouchIconLink");
+            const favLink = document.getElementById("faviconLink");
+            if (appleLink) appleLink.setAttribute("href", paddedPngUrl);
+            if (favLink) {
+              favLink.setAttribute("type", "image/png");
+              favLink.setAttribute("href", paddedPngUrl);
+            }
+            applyManifest(paddedPngUrl, "image/png");
+          } catch (canvasErr) {
+            console.warn("Canvas icon padding fallback to raw ./icon.png:", canvasErr);
+          }
         };
-        const blob = new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" });
-        document.getElementById("pwaManifestLink").setAttribute("href", URL.createObjectURL(blob));
+        img.onerror = function () {
+          // Graceful fallback if ./icon.png hasn't been uploaded yet
+          const appleLink = document.getElementById("appleTouchIconLink");
+          const favLink = document.getElementById("faviconLink");
+          if (appleLink) appleLink.setAttribute("href", fallbackIconUrl);
+          if (favLink) {
+            favLink.setAttribute("type", "image/jpeg");
+            favLink.setAttribute("href", fallbackIconUrl);
+          }
+          applyManifest(fallbackIconUrl, "image/jpeg");
+        };
+        img.src = primaryIconUrl;
       } catch (e) {
-        console.warn("Manifest generation skipped:", e);
+        console.warn("Icon scaler skipped:", e);
       }
     })();
   </script>
