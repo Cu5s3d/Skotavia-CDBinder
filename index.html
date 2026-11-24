@@ -452,6 +452,57 @@
         </div>
 
         <div id="carouselStage" data-anim-mode="carousel" class="carousel-stage relative h-52 sm:h-60 w-full flex items-center justify-center overflow-hidden my-1"></div>
+
+        <!-- Pill Scrollbar Navigation -->
+        <div class="flex items-center justify-center gap-1.5 shrink-0 pt-1">
+          <button id="prevDiscBtn" type="button" aria-label="Previous Disc"
+            class="w-8 h-8 rounded-xl bg-skoda-card hover:bg-skoda-border border border-skoda-border text-slate-200 flex items-center justify-center active:scale-95 transition shrink-0">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+
+          <div id="discTabs" class="flex items-center gap-1 overflow-x-auto no-scrollbar px-2 py-1 rounded-2xl bg-skoda-card/90 border border-skoda-border max-w-full"></div>
+
+          <button id="nextDiscBtn" type="button" aria-label="Next Disc"
+            class="w-8 h-8 rounded-xl bg-skoda-card hover:bg-skoda-border border border-skoda-border text-slate-200 flex items-center justify-center active:scale-95 transition shrink-0">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+        </div>
+      </section>
+
+      <!-- Tracklist & Search Panel (Bottom in Portrait, 40% Left Pane in Landscape) -->
+      <section id="tracklistColumn" class="flex-1 flex flex-col bg-skoda-bg min-h-0">
+        <!-- Global Search & Active Disc Bar -->
+        <div class="p-3 border-b border-skoda-border/80 bg-skoda-panel/60 space-y-2.5 shrink-0">
+          <div class="relative">
+            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+            </svg>
+            <input id="searchInput" type="search" placeholder="Search song or artist across all 16 discs..."
+              class="w-full bg-skoda-card border border-skoda-border focus:border-skoda-green rounded-xl pl-9 pr-8 py-2 text-xs text-white placeholder-slate-400 outline-none transition" />
+            <button id="clearSearchBtn" type="button" aria-label="Clear Search"
+              class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs px-1">✕</button>
+          </div>
+
+          <div class="flex items-center justify-between gap-2">
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-2 min-w-0">
+                <span id="activeDiscBadge" class="px-1.5 py-0.5 rounded bg-skoda-green/20 border border-skoda-green/40 text-skoda-glow font-mono text-[10px] font-bold shrink-0">DISC 01</span>
+                <h2 id="activeDiscTitle" class="text-xs sm:text-sm font-bold text-white truncate">DJ Sebi — Locul tau in inima mea</h2>
+              </div>
+              <p id="activeDiscSubtitle" class="text-[11px] text-slate-400 truncate mt-0.5">Pressed Audio CD • Total Studio (10 tracks)</p>
+            </div>
+
+            <div class="flex items-center gap-1.5 shrink-0">
+              <a id="openPlaylistBtn" href="#" target="_blank" rel="noopener noreferrer"
+                class="playlist-link hidden px-2.5 py-1.5 rounded-xl bg-red-950/50 hover:bg-red-900/60 border border-red-800/50 text-[11px] font-semibold text-red-200 items-center gap-1 active:scale-95 transition">
+                <span>Open YT Playlist</span>
+                <span>↗</span>
+              </a>
+              <button id="copyLinkBtn" type="button"
+                class="px-2.5 py-1.5 rounded-xl bg-skoda-card hover:bg-skoda-border border border-skoda-border text-[11px] font-medium text-slate-200 active:scale-95 transition">
+                Share
+              </button>
+            </div>
           </div>
         </div>
 
@@ -2146,6 +2197,7 @@
 
     // Build persistent DOM elements once so CSS transitions & @keyframes spin never break
     function buildCarouselDom() {
+      if (!stageEl || !tabsEl) return;
       stageEl.innerHTML = "";
       tabsEl.innerHTML = "";
       discSlotEls.length = 0;
@@ -2265,7 +2317,9 @@
       });
 
       const activeTab = discTabEls[activeIndex];
-      if (activeTab) activeTab.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+      if (activeTab && typeof activeTab.scrollIntoView === "function") {
+        activeTab.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+      }
     }
 
     function applyTrackMarquees(rootEl = document) {
@@ -2294,44 +2348,77 @@
 
     function renderActiveDiscTracks() {
       const disc = DISCS[activeIndex];
-      if (!disc) return;
+      if (!disc || !trackContainerEl) return;
 
-      counterEl.textContent = `SLEEVE ${activeIndex + 1} / ${DISCS.length}`;
-      badgeEl.textContent = disc.code;
-      titleEl.textContent = disc.title;
-      subtitleEl.textContent = `${disc.subtitle} (${disc.tracks.length} tracks)`;
+      if (counterEl) counterEl.textContent = `SLEEVE ${activeIndex + 1} / ${DISCS.length}`;
+      if (badgeEl) badgeEl.textContent = disc.code;
+      if (titleEl) titleEl.textContent = disc.title;
+      if (subtitleEl) subtitleEl.textContent = `${disc.subtitle} (${disc.tracks.length} tracks)`;
 
-      if (disc.playlistUrl) {
-        playlistBtnEl.href = disc.playlistUrl;
-        playlistBtnEl.onclick = e => openExternalLink(e, disc.playlistUrl);
-        playlistBtnEl.classList.remove("hidden");
-        playlistBtnEl.classList.add("inline-flex");
-      } else {
-        playlistBtnEl.classList.add("hidden");
-        playlistBtnEl.classList.remove("inline-flex");
+      if (playlistBtnEl) {
+        if (disc.playlistUrl) {
+          playlistBtnEl.href = disc.playlistUrl;
+          playlistBtnEl.onclick = e => openExternalLink(e, disc.playlistUrl);
+          playlistBtnEl.classList.remove("hidden");
+          playlistBtnEl.classList.add("inline-flex");
+        } else {
+          playlistBtnEl.classList.add("hidden");
+          playlistBtnEl.classList.remove("inline-flex");
+        }
       }
+    const prevDiscBtn = document.getElementById("prevDiscBtn");
+    const nextDiscBtn = document.getElementById("nextDiscBtn");
+    if (prevDiscBtn) prevDiscBtn.addEventListener("click", () => selectDisc(activeIndex - 1));
+    if (nextDiscBtn) nextDiscBtn.addEventListener("click", () => selectDisc(activeIndex + 1));
 
-      trackContainerEl.innerHTML = disc.tracks.map((track, i) => {
-        const ytUrl = buildYtSearchUrl(track);
-        const num = String(i + 1).padStart(2, "0");
-        return `
-          <div class="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-skoda-card/90 hover:bg-skoda-card border border-skoda-border/80 transition">
-            <div class="flex items-center gap-2.5 min-w-0 flex-1">
-              <span class="text-[10px] font-mono text-slate-500 w-5 shrink-0">${num}</span>
-              <div class="track-title-viewport no-fade">
-                <span class="track-title-scroll text-xs text-slate-100">${escapeHtml(track)}</span>
-              </div>
-            </div>
-            <a href="${ytUrl}" target="_blank" rel="noopener noreferrer"
-              onclick="openExternalLink(event, '${ytUrl.replace(/'/g, "\\'")}')"
-              class="yt-link shrink-0 px-2 py-1 rounded-lg bg-skoda-green/15 hover:bg-skoda-green/30 border border-skoda-green/40 text-[10px] font-mono font-semibold text-skoda-glow active:scale-95 transition">
-              YT ↗
-            </a>
-          </div>
-        `;
-      }).join("");
+    let touchStartX = 0;
+    let isMouseDragging = false;
+    if (stageEl) {
+      stageEl.addEventListener("touchstart", e => { touchStartX = e.changedTouches[0].clientX; }, { passive: true });
+      stageEl.addEventListener("touchend", e => {
+        const dx = e.changedTouches[0].clientX - touchStartX;
+        if (Math.abs(dx) > 32) selectDisc(activeIndex + (dx < 0 ? 1 : -1));
+      }, { passive: true });
+      stageEl.addEventListener("mousedown", e => {
+        isMouseDragging = true;
+        touchStartX = e.clientX;
+      });
+      window.addEventListener("mouseup", e => {
+        if (!isMouseDragging) return;
+        isMouseDragging = false;
+        const dx = e.clientX - touchStartX;
+        if (Math.abs(dx) > 36) selectDisc(activeIndex + (dx < 0 ? 1 : -1));
+      });
+    }
 
-      applyTrackMarquees(trackContainerEl);
+    if (searchInputEl) {
+      searchInputEl.addEventListener("input", e => {
+        searchQuery = e.target.value;
+        if (clearSearchBtn) clearSearchBtn.classList.toggle("hidden", !searchQuery);
+        renderSearchResults();
+      });
+    }
+    if (clearSearchBtn) {
+      clearSearchBtn.addEventListener("click", () => {
+        searchQuery = "";
+        if (searchInputEl) searchInputEl.value = "";
+        clearSearchBtn.classList.add("hidden");
+        renderSearchResults();
+      });
+    }
+
+    const copyLinkBtn = document.getElementById("copyLinkBtn");
+    if (copyLinkBtn) {
+      copyLinkBtn.addEventListener("click", () => {
+        const shareUrl = `${window.location.origin}${window.location.pathname}?disc=${activeIndex + 1}`;
+        const inp = document.createElement("input");
+        inp.value = shareUrl;
+        document.body.appendChild(inp);
+        inp.select();
+        document.execCommand("copy");
+        document.body.removeChild(inp);
+        showToast(`Copied link for ${DISCS[activeIndex].code}`);
+      });
     }
 
     function renderSearchResults() {
